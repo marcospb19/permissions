@@ -33,13 +33,13 @@ pub enum ModeBits {
 }
 
 pub(crate) trait IntoCustom {
-    fn into_custom(&self) -> Self;
+    fn into_custom(self) -> Self;
 }
 
 impl IntoCustom for Class {
-    fn into_custom(&self) -> Self {
+    fn into_custom(self) -> Self {
         use Class::*;
-        match *self {
+        match self {
             Owner => Custom(0b100),
             Group => Custom(0b010),
             Other => Custom(0b001),
@@ -50,9 +50,9 @@ impl IntoCustom for Class {
 }
 
 impl IntoCustom for ModeBits {
-    fn into_custom(&self) -> Self {
+    fn into_custom(self) -> Self {
         use ModeBits::*;
-        match *self {
+        match self {
             Null => Custom(0_000),
             Read => Custom(0b100),
             Write => Custom(0b010),
@@ -67,14 +67,53 @@ impl IntoCustom for ModeBits {
 impl BitAnd<ModeBits> for ModeBits {
     type Output = Self;
 
-    fn bitand(self, _other: Self) -> Self::Output {
-        todo!()
-        // Self::AllSet
+    fn bitand(self, other: Self) -> Self::Output {
+        let self_mode = Self::into_custom(self).mode();
+        let other_mode = Self::into_custom(other).mode();
+
+        let result = self_mode | other_mode;
+        ModeBits::from(result)
+    }
+}
+
+// impl BitAnd<ModeBits> for Class {
+//     type Output = Self;
+
+//     fn bitand(self, _other: Self) -> Self::Output {
+//         todo!()
+//         // Self::AllSet
+//     }
+// }
+
+impl From<mode_t> for ModeBits {
+    fn from(integer: mode_t) -> Self {
+        // Each bit
+        let read = integer & 0b100 == 0b100;
+        let write = integer & 0b010 == 0b010;
+        let execute = integer & 0b001 == 0b001;
+
+        match (read, write, execute) {
+            (true, false, false) => Self::Read,
+            (false, true, false) => Self::Write,
+            (false, false, true) => Self::Execute,
+            //
+            (true, true, true) => Self::AllSet,
+            (false, false, false) => Self::Null,
+            _ => Self::Custom(integer & 0b111),
+        }
     }
 }
 
 //
 impl ModeBits {
+    pub fn mode(&self) -> mode_t {
+        let result = self.into_custom();
+        match result {
+            Self::Custom(mode) => mode,
+            _ => unreachable!(),
+        }
+    }
+
     // Very redundant, should I remove this?
     // It can be replaced by
     //
@@ -130,3 +169,14 @@ struct PermissionBits {
 }
 
 // impl Display? nah
+
+//
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test1() {
+        let a = ModeBits::from(0o770);
+    }
+}
