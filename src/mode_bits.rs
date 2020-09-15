@@ -1,14 +1,23 @@
 use crate::bits_t;
 
-use std::ops::{BitAnd, BitOr};
+use std::{
+    cmp::Ordering,
+    ops::{BitAnd, BitOr},
+};
 
-const READ_BIT: u8 = 0b100;
-const WRITE_BIT: u8 = 0b010;
-const EXECUTE_BIT: u8 = 0b001;
-const ALL_MODES_BITS: u8 = 0b111;
+const READ_BIT: bits_t = 0b100; // 4
+const WRITE_BIT: bits_t = 0b010; // 2
+const EXECUTE_BIT: bits_t = 0b001; // 1
+const ALL_MODES_BITS: bits_t = 0b111; // 7
 
-/// Permission bits itself inside of the blablabla u32 k
-#[derive(Debug, PartialEq, Eq, Copy, Clone, PartialOrd, Ord)]
+/// Bits for each permission mode `rwx`: `Read`, `Write`, `Execute`, or a
+/// _combination_.
+///
+/// To check those 3 bits, try:
+/// ```sh
+/// ls -l .
+/// ```
+#[derive(Debug, Copy, Clone)]
 pub enum ModeBits {
     Null,
     Read,
@@ -18,26 +27,20 @@ pub enum ModeBits {
     Custom(bits_t), // Combination of multiple mode bits
 }
 
+/// Merge two
 impl BitOr<ModeBits> for ModeBits {
     type Output = Self;
 
     fn bitor(self, other: Self) -> Self::Output {
-        let merge_result = self.bits() | other.bits();
+        ModeBits::from(self.bits() | other.bits())
+    }
+}
 
-        let owner = self.is_read_set();
-        let group = self.is_write_set();
-        let other = self.is_execute_set();
+impl BitAnd<ModeBits> for ModeBits {
+    type Output = Self;
 
-        let result = match (owner, group, other) {
-            (true, false, false) => ModeBits::Read,
-            (false, true, false) => ModeBits::Write,
-            (false, false, true) => ModeBits::Execute,
-            (false, false, false) => ModeBits::Null,
-            (true, true, true) => ModeBits::AllBits,
-            _ => ModeBits::Custom(merge_result),
-        };
-
-        result
+    fn bitand(self, other: Self) -> Self::Output {
+        ModeBits::from(self.bits() & other.bits())
     }
 }
 
@@ -46,18 +49,6 @@ impl Default for ModeBits {
         ModeBits::Null
     }
 }
-
-// impl BitAnd<ModeBits> for ModeBits {
-//     type Output = Self;
-
-//     fn bitand(self, other: Self) -> Self::Output {
-//         let self_mode = Self::into_custom(self).mode();
-//         let other_mode = Self::into_custom(other).mode();
-
-//         let result = self_mode | other_mode;
-//         ModeBits::from(result)
-//     }
-// }
 
 impl From<bits_t> for ModeBits {
     fn from(integer: bits_t) -> Self {
@@ -91,6 +82,23 @@ impl ModeBits {
         }
     }
 
+    pub fn normalize(self) -> Self {
+        let read = self.is_read_set();
+        let write = self.is_write_set();
+        let execute = self.is_execute_set();
+
+        let result = match (read, write, execute) {
+            (true, false, false) => ModeBits::Read,
+            (false, true, false) => ModeBits::Write,
+            (false, false, true) => ModeBits::Execute,
+            (false, false, false) => ModeBits::Null,
+            (true, true, true) => ModeBits::AllBits,
+            _ => ModeBits::Custom(self.bits()),
+        };
+
+        result
+    }
+
     pub fn is_read_set(&self) -> bool {
         match self.bits() & READ_BIT {
             0 => false,
@@ -110,5 +118,68 @@ impl ModeBits {
             0 => false,
             _ => true,
         }
+    }
+}
+
+// Eq and PartialEq
+impl PartialEq for ModeBits {
+    fn eq(&self, other: &Self) -> bool {
+        self.bits() == other.bits()
+    }
+}
+impl Eq for ModeBits {}
+
+/// Reuse Ord for PartialOrd implementation
+impl PartialOrd for ModeBits {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
+/// Ord here exposes the Ord of the integer accessed by self.bits()
+impl Ord for ModeBits {
+    fn cmp(&self, other: &Self) -> Ordering {
+        self.bits().cmp(&other.bits())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::ModeBits::{self, *};
+
+    #[test]
+    fn test_explicit_variants_against_custom() {
+        assert_eq!(Read, Custom(0b100));
+        assert_eq!(Write, Custom(0b010));
+        assert_eq!(Execute, Custom(0b001));
+        assert_eq!(AllBits, Custom(0b111));
+    }
+
+    #[test]
+    // Test a | b and creating ModeBits in all the ways possible
+    fn test_bitor_and_all_constructors() {
+        for i in 0..=7 {
+            for j in 0..=7 {
+                let merged = Custom(i) | Custom(j);
+                assert_eq!(merged, Custom(i | j));
+                assert_eq!(merged, ModeBits::from(i | j));
+                assert_eq!(merged, ModeBits::from(i) | ModeBits::from(j));
+                assert_eq!(merged.bits(), i | j);
+
+                // Test not equal
+                if i != j {
+                    assert_ne!(Custom(i), Custom(j));
+                    assert_ne!(ModeBits::from(i), ModeBits::from(j));
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn test_useless_bitor() {
+        assert_eq!(Read | Read, Read);
+        assert_eq!(Write | Write, Write);
+        assert_eq!(Execute | Execute, Execute);
+        assert_eq!(AllBits | AllBits, AllBits);
     }
 }

@@ -1,7 +1,6 @@
-use crate::{mode_bits::ModeBits, Classes};
-use std::os::unix::fs::PermissionsExt;
+use crate::{bits_t, mode_bits::ModeBits, Classes};
 
-use std::{convert::TryFrom, fs, io};
+use std::{convert::TryFrom, fs, io, os::unix::fs::PermissionsExt};
 
 #[derive(Debug, PartialEq, Eq, Clone, PartialOrd, Ord)]
 pub struct PermissionBits {
@@ -27,8 +26,18 @@ impl PermissionBits {
         }
     }
 
+    pub fn bits(&self) -> bits_t {
+        let mut result: bits_t = 0;
+        result |= (self.owner_bits.bits() as bits_t) << 3 << 3;
+        result |= (self.group_bits.bits() as bits_t) << 3;
+        result |= self.other_bits.bits() as bits_t;
+        result
+    }
+
     pub fn set(&mut self, classes: Classes, bits: ModeBits) -> Self {
         if classes.is_owner_set() {
+            // println!("oi");
+            // println!("{:#?}", self.owner_bits | bits);
             self.owner_bits = self.owner_bits | bits;
         }
         if classes.is_group_set() {
@@ -59,16 +68,36 @@ impl From<fs::Permissions> for PermissionBits {
 }
 
 #[allow(unused_parens)]
-impl From<u32> for PermissionBits {
-    fn from(mode: u32) -> Self {
+impl From<bits_t> for PermissionBits {
+    fn from(mode: bits_t) -> Self {
         let owner = (mode & 0o700) >> 3 >> 3;
         let group = (mode & 0o070) >> 3;
         let other = (mode & 0o007);
 
-        let owner = ModeBits::from(owner as u8);
-        let group = ModeBits::from(group as u8);
-        let other = ModeBits::from(other as u8);
+        let owner = ModeBits::from(owner as bits_t);
+        let group = ModeBits::from(group as bits_t);
+        let other = ModeBits::from(other as bits_t);
 
         PermissionBits::new(owner, group, other)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::{
+        bits_t,
+        Classes::{AllClasses, Group, Other, Owner},
+        ModeBits::{AllBits, Execute, Null, Read, Write},
+        PermissionBits,
+    };
+
+    #[test]
+    fn test_set() {
+        let mut perms = PermissionBits::blank();
+        perms.set(Owner, Read);
+        perms.set(Group, Write);
+        perms.set(Other, Execute);
+        let mode = perms.bits();
+        // assert_eq!(mode, 0o421)
     }
 }
