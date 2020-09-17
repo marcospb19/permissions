@@ -12,6 +12,8 @@ pub use classes::Classes;
 pub use mode_bits::ModeBits;
 pub use permission_bits::PermissionBits;
 
+mod functions;
+pub use functions::*;
 // #[allow(unused_imports)]
 // use super::{
 //     Classes::{AllClasses, Group, Other, Owner},

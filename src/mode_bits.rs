@@ -33,35 +33,6 @@ impl Default for ModeBits {
     }
 }
 
-/// Merge two
-impl BitOr<ModeBits> for ModeBits {
-    type Output = Self;
-
-    fn bitor(self, other: Self) -> Self::Output {
-        ModeBits::from(self.bits() | other.bits())
-    }
-}
-
-impl BitOrAssign<ModeBits> for ModeBits {
-    fn bitor_assign(&mut self, other: Self) {
-        *self = self.bitor(other)
-    }
-}
-
-impl BitAnd<ModeBits> for ModeBits {
-    type Output = Self;
-
-    fn bitand(self, other: Self) -> Self::Output {
-        ModeBits::from(self.bits() & other.bits())
-    }
-}
-
-impl BitAndAssign<ModeBits> for ModeBits {
-    fn bitand_assign(&mut self, other: Self) {
-        *self = self.bitand(other)
-    }
-}
-
 impl From<bits_t> for ModeBits {
     fn from(integer: bits_t) -> Self {
         // Ignore anything above
@@ -79,6 +50,54 @@ impl From<bits_t> for ModeBits {
             (false, false, false) => Self::Null,
             _ => Self::Custom(integer),
         }
+    }
+}
+
+/// Merge two
+impl BitOr<ModeBits> for ModeBits {
+    type Output = Self;
+
+    fn bitor(self, other: Self) -> Self::Output {
+        ModeBits::from(self.bits() | other.bits())
+    }
+}
+impl BitOrAssign<ModeBits> for ModeBits {
+    fn bitor_assign(&mut self, other: Self) {
+        *self = self.bitor(other)
+    }
+}
+
+impl BitAnd<ModeBits> for ModeBits {
+    type Output = Self;
+
+    fn bitand(self, other: Self) -> Self::Output {
+        ModeBits::from(self.bits() & other.bits())
+    }
+}
+impl BitAndAssign<ModeBits> for ModeBits {
+    fn bitand_assign(&mut self, other: Self) {
+        *self = self.bitand(other)
+    }
+}
+
+// Eq and PartialEq
+impl PartialEq for ModeBits {
+    fn eq(&self, other: &Self) -> bool {
+        self.bits() == other.bits()
+    }
+}
+impl Eq for ModeBits {}
+
+/// Reuse Ord for PartialOrd implementation
+impl PartialOrd for ModeBits {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        Some(self.cmp(other))
+    }
+}
+/// Ord here exposes the Ord of the integer accessed by self.bits()
+impl Ord for ModeBits {
+    fn cmp(&self, other: &Self) -> Ordering {
+        self.bits().cmp(&other.bits())
     }
 }
 
@@ -112,46 +131,45 @@ impl ModeBits {
     }
 
     pub fn is_read_set(&self) -> bool {
-        match self.bits() & READ_BIT {
-            0 => false,
-            _ => true,
-        }
+        self.bits().is_read_set()
     }
 
     pub fn is_write_set(&self) -> bool {
-        match self.bits() & WRITE_BIT {
-            0 => false,
-            _ => true,
-        }
+        self.bits().is_write_set()
     }
 
     pub fn is_execute_set(&self) -> bool {
-        match self.bits() & EXECUTE_BIT {
+        self.bits().is_execute_set()
+    }
+}
+
+trait Simbora {
+    fn is_read_set(&self) -> bool;
+
+    fn is_write_set(&self) -> bool;
+
+    fn is_execute_set(&self) -> bool;
+}
+impl Simbora for bits_t {
+    fn is_read_set(&self) -> bool {
+        match self & READ_BIT {
             0 => false,
             _ => true,
         }
     }
-}
 
-// Eq and PartialEq
-impl PartialEq for ModeBits {
-    fn eq(&self, other: &Self) -> bool {
-        self.bits() == other.bits()
+    fn is_write_set(&self) -> bool {
+        match self & WRITE_BIT {
+            0 => false,
+            _ => true,
+        }
     }
-}
-impl Eq for ModeBits {}
 
-/// Reuse Ord for PartialOrd implementation
-impl PartialOrd for ModeBits {
-    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-        Some(self.cmp(other))
-    }
-}
-
-/// Ord here exposes the Ord of the integer accessed by self.bits()
-impl Ord for ModeBits {
-    fn cmp(&self, other: &Self) -> Ordering {
-        self.bits().cmp(&other.bits())
+    fn is_execute_set(&self) -> bool {
+        match self & EXECUTE_BIT {
+            0 => false,
+            _ => true,
+        }
     }
 }
 
