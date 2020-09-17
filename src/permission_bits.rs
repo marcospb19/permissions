@@ -38,7 +38,7 @@ impl PermissionBits {
         if classes.is_owner_set() {
             // println!("oi");
             // println!("{:#?}", self.owner_bits | bits);
-            self.owner_bits = self.owner_bits | bits;
+            self.owner_bits |= self.owner_bits | bits;
         }
         if classes.is_group_set() {
             self.group_bits = self.group_bits | bits;

@@ -2,7 +2,7 @@ use crate::bits_t;
 
 use std::{
     cmp::Ordering,
-    ops::{BitAnd, BitOr},
+    ops::{BitAnd, BitAndAssign, BitOr, BitOrAssign},
 };
 
 const READ_BIT: bits_t = 0b100; // 4
@@ -27,12 +27,24 @@ pub enum ModeBits {
     Custom(bits_t), // Combination of multiple mode bits
 }
 
+impl Default for ModeBits {
+    fn default() -> Self {
+        ModeBits::Null
+    }
+}
+
 /// Merge two
 impl BitOr<ModeBits> for ModeBits {
     type Output = Self;
 
     fn bitor(self, other: Self) -> Self::Output {
         ModeBits::from(self.bits() | other.bits())
+    }
+}
+
+impl BitOrAssign<ModeBits> for ModeBits {
+    fn bitor_assign(&mut self, other: Self) {
+        *self = self.bitor(other)
     }
 }
 
@@ -44,9 +56,9 @@ impl BitAnd<ModeBits> for ModeBits {
     }
 }
 
-impl Default for ModeBits {
-    fn default() -> Self {
-        ModeBits::Null
+impl BitAndAssign<ModeBits> for ModeBits {
+    fn bitand_assign(&mut self, other: Self) {
+        *self = self.bitand(other)
     }
 }
 
