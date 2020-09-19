@@ -6,4 +6,6 @@ edition = "2018"
 description = "Friendly crate for dealing with unix file permissions."
 repository = "https://github.com/marcospb19/unix_file_permissions"
 license = "MIT"
-# categories = ["api-bindings", "filesystem"]
+
+[dependencies]
+libc = "0.2"
