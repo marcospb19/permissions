@@ -32,8 +32,9 @@ pub fn is_file_executable(path: &impl AsRef<Path>) -> io::Result<bool> {
     access(&path.as_ref(), libc::X_OK)
 }
 
-// Wraps `libc::access` in a somehow safe environment.
-fn access(path: &impl AsRef<Path>, modes: libc::c_int) -> io::Result<bool> {
+/// Safe function that wraps `libc::access` syscall, used by other functions in
+/// the same module.
+pub fn access(path: &impl AsRef<Path>, modes: libc::c_int) -> io::Result<bool> {
     let bytes: Vec<u8> = path.as_ref().to_str().unwrap().bytes().collect();
     let cstring = CString::new(bytes).unwrap();
     let result = unsafe { libc::access(cstring.as_ptr(), modes) };
