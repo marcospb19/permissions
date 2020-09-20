@@ -1,14 +1,42 @@
 use std::{ffi::CString, io, path::Path};
 
-pub fn is_file_removable(path: impl AsRef<Path>) -> io::Result<bool> {
+/// To remove a file/directory in `Unix`, you'd need `W_OK` permission on the
+/// parent directory, this function wraps the call of `access(parent_dir, W_OK)`
+///
+/// Note that having the permission to remove a file does not guarantee that the
+/// _I/O_ operation will be successful, it only means that it is very probably
+/// to succeed. Be aware of [TOCTOU](https://en.wikipedia.org/wiki/Time-of-check_to_time-of-use)
+/// race conditions, and any other `io::Error` that can occur.
+pub fn is_file_removable(path: &impl AsRef<Path>) -> io::Result<bool> {
     let parent = match path.as_ref().parent() {
+        // Cannot delete '/' (root)
+        None => return Ok(false),
         Some(parent) => parent,
-        None => return Ok(false), // Cannot delete '/' (root)
     };
 
-    let bytes: Vec<u8> = parent.to_str().unwrap().bytes().collect();
+    access(&parent, libc::W_OK)
+}
+
+/// Check if current process has permission to read file/directory at path.
+pub fn is_file_readable(path: &impl AsRef<Path>) -> io::Result<bool> {
+    access(&path.as_ref(), libc::R_OK)
+}
+
+/// Check if current process has permission to write to file/directory at path.
+pub fn is_file_writable(path: &impl AsRef<Path>) -> io::Result<bool> {
+    access(&path.as_ref(), libc::W_OK)
+}
+
+/// Check if current process has permission to execute file/directory at path.
+pub fn is_file_executable(path: &impl AsRef<Path>) -> io::Result<bool> {
+    access(&path.as_ref(), libc::X_OK)
+}
+
+// Wraps `libc::access` in a somehow safe environment.
+fn access(path: &impl AsRef<Path>, modes: libc::c_int) -> io::Result<bool> {
+    let bytes: Vec<u8> = path.as_ref().to_str().unwrap().bytes().collect();
     let cstring = CString::new(bytes).unwrap();
-    let result = unsafe { libc::access(cstring.as_ptr(), libc::W_OK) };
+    let result = unsafe { libc::access(cstring.as_ptr(), modes) };
 
     if result == 0 {
         Ok(true) // Permission
@@ -24,11 +52,3 @@ pub fn is_file_removable(path: impl AsRef<Path>) -> io::Result<bool> {
         }
     }
 }
-
-// pub fn is_executable_by_someone(bits: bits_t) -> bool {
-//     bits & 0o111 != 0
-// }
-
-// pub fn is_executable_by_someone(bits: bits_t) -> bool {
-//     bits & 0o111 != 0
-// }
