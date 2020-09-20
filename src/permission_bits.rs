@@ -82,22 +82,22 @@ impl From<bits_t> for PermissionBits {
     }
 }
 
-#[cfg(test)]
-mod tests {
-    use crate::{
-        bits_t,
-        Classes::{AllClasses, Group, Other, Owner},
-        ModeBits::{AllBits, Execute, Null, Read, Write},
-        PermissionBits,
-    };
+// #[cfg(test)]
+// mod tests {
+//     use crate::{
+//         bits_t,
+//         Classes::{AllClasses, Group, Other, Owner},
+//         ModeBits::{AllBits, Execute, Null, Read, Write},
+//         PermissionBits,
+//     };
 
-    #[test]
-    fn test_set() {
-        let mut perms = PermissionBits::blank();
-        perms.set(Owner, Read);
-        perms.set(Group, Write);
-        perms.set(Other, Execute);
-        let mode = perms.bits();
-        // assert_eq!(mode, 0o421)
-    }
-}
+//     #[test]
+//     fn test_set() {
+//         let mut perms = PermissionBits::blank();
+//         perms.set(Owner, Read);
+//         perms.set(Group, Write);
+//         perms.set(Other, Execute);
+//         let mode = perms.bits();
+//         // assert_eq!(mode, 0o421)
+//     }
+// }
