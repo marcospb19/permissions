@@ -1,5 +1,7 @@
 use crate::{c_int, Classes, ModeBits};
 
+use std::{fs, os::unix::fs::PermissionsExt};
+
 #[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Clone, Copy, Default)]
 pub struct PermissionBits {
     pub owner_bits: ModeBits,
@@ -8,14 +10,23 @@ pub struct PermissionBits {
 }
 
 impl PermissionBits {
+    /// Function to build new PermissionBits with each field.
+    pub fn new(owner_bits: ModeBits, group_bits: ModeBits, other_bits: ModeBits) -> Self {
+        PermissionBits {
+            owner_bits,
+            group_bits,
+            other_bits,
+        }
+    }
+
     /// Returns None if there are extra bits set, other than the last 9 bits
     /// expected (3 for the mode of each class)
     pub fn from_bits(bits: c_int) -> Option<Self> {
         // Discard all bits that can appear in 0o777 and check for anything left
-        if bits >> 9 != 0 {
-            None
-        } else {
+        if bits >> 9 == 0 {
             Some(PermissionBits::from_bits_truncated(bits))
+        } else {
+            None
         }
     }
 
@@ -32,7 +43,7 @@ impl PermissionBits {
         PermissionBits::new(owner, group, other)
     }
 
-    pub fn empty() -> Self {
+    pub const fn empty() -> Self {
         PermissionBits {
             owner_bits: ModeBits::empty(),
             group_bits: ModeBits::empty(),
@@ -40,117 +51,118 @@ impl PermissionBits {
         }
     }
 
-    pub fn new(owner_bits: ModeBits, group_bits: ModeBits, other_bits: ModeBits) -> Self {
+    pub const fn all() -> Self {
         PermissionBits {
-            owner_bits,
-            group_bits,
-            other_bits,
+            owner_bits: ModeBits::all(),
+            group_bits: ModeBits::all(),
+            other_bits: ModeBits::all(),
         }
     }
 
     /// improve this help lalalalalalala
     /// Prepare a 0o777 style from 3 0b111 style lalala
     pub fn bits(&self) -> c_int {
-        let mut result: c_int = 0;
+        let mut result = 0;
         result |= self.owner_bits.bits() << 3 << 3;
         result |= self.group_bits.bits() << 3;
         result |= self.other_bits.bits();
         result
     }
 
+    pub const fn is_empty(&self) -> bool {
+        self.owner_bits.is_empty() && self.group_bits.is_empty() && self.other_bits.is_empty()
+    }
+
+    pub const fn is_all(&self) -> bool {
+        self.owner_bits.is_all() && self.group_bits.is_all() && self.other_bits.is_all()
+    }
+
+    pub fn intersects(&self, other: PermissionBits) -> bool {
+        self.owner_bits.intersects(other.owner_bits)
+            && self.group_bits.intersects(other.group_bits)
+            && self.other_bits.intersects(other.other_bits)
+    }
+
+    pub fn contains(&self, other: PermissionBits) -> bool {
+        self.owner_bits.contains(other.owner_bits)
+            && self.group_bits.contains(other.group_bits)
+            && self.other_bits.contains(other.other_bits)
+    }
+
     pub fn insert(&mut self, classes: Classes, bits: ModeBits) -> Self {
         if classes.is_owner_set() {
-            self.owner_bits |= bits;
+            self.owner_bits.insert(bits);
         }
         if classes.is_group_set() {
-            self.group_bits |= bits;
+            self.group_bits.insert(bits);
         }
         if classes.is_other_set() {
-            self.other_bits |= bits;
+            self.other_bits.insert(bits);
         }
-
         *self
     }
 
-    // pub const fn empty() -> ModeBits
-    // [src][−]
-    // Returns an empty set of flags
+    pub fn remove(&mut self, classes: Classes, bits: ModeBits) -> Self {
+        if classes.is_owner_set() {
+            self.owner_bits.remove(bits);
+        }
+        if classes.is_group_set() {
+            self.group_bits.remove(bits);
+        }
+        if classes.is_other_set() {
+            self.other_bits.remove(bits);
+        }
+        *self
+    }
 
-    // pub const fn all() -> ModeBits
-    // [src][−]
-    // Returns the set containing all flags.
-
-    // pub const fn bits(&self) -> c_int
-    // [src][−]
-    // Returns the raw value of the flags currently stored.
-
-    // pub fn from_bits(bits: c_int) -> Option<ModeBits>
-    // [src][−]
-    // Convert from underlying bit representation, unless that representation
-    // contains bits that do not correspond to a flag.
-
-    // pub const fn from_bits_truncate(bits: c_int) -> ModeBits
-    // [src][−]
-    // Convert from underlying bit representation, dropping any bits that do not
-    // correspond to flags.
-
-    // pub const unsafe fn from_bits_unchecked(bits: c_int) -> ModeBits
-    // [src][−]
-    // Convert from underlying bit representation, preserving all bits (even those
-    // not corresponding to a defined flag).
-
-    // pub const fn is_empty(&self) -> bool
-    // [src][−]
-    // Returns true if no flags are currently stored.
-
-    // pub const fn is_all(&self) -> bool
-    // [src][−]
-    // Returns true if all flags are currently set.
-
-    // pub const fn intersects(&self, other: ModeBits) -> bool
-    // [src][−]
-    // Returns true if there are flags common to both self and other.
-
-    // pub const fn contains(&self, other: ModeBits) -> bool
-    // [src][−]
-    // Returns true all of the flags in other are contained within self.
-
-    // pub fn insert(&mut self, other: ModeBits)
-    // [src][−]
-    // Inserts the specified flags in-place.
-
-    // pub fn remove(&mut self, other: ModeBits)
-    // [src][−]
-    // Removes the specified flags in-place.
-
-    // pub fn toggle(&mut self, other: ModeBits)
-    // [src][−]
-    // Toggles the specified flags in-place.
-
-    // pub fn set(&mut self, other: ModeBits, value: bool)
-    // [src][−]
-    // Inserts or removes the specified flags depending on the passed value.
-
-    // que tal eu fazer o insert, remove e outros kd o resto olha la a referencia po
-    // kk
-    // pub fn insert(&mut self, classes: Classes, bits: ModeBits) -> Self {
-    //     if classes.is_owner_set() {
-    //         self.owner_bits |= bits;
-    //     }
-    //     if classes.is_group_set() {
-    //         self.group_bits |= bits;
-    //     }
-    //     if classes.is_other_set() {
-    //         self.other_bits |= bits;
-    //     }
-
-    //     *self
-    // }
+    pub fn set(&mut self, classes: Classes, bits: ModeBits, value: bool) -> Self {
+        if classes.is_owner_set() {
+            self.owner_bits.set(bits, value);
+        }
+        if classes.is_group_set() {
+            self.group_bits.set(bits, value);
+        }
+        if classes.is_other_set() {
+            self.other_bits.set(bits, value);
+        }
+        *self
+    }
 }
 
-// impl From<fs::Permissions> for PermissionBits {
-//     fn from(fs_permissions: fs::Permissions) -> Self {
-//         // u32 as i32, safe?
-//         PermissionBits::from(fs_permissions.mode() as c_int)
-//     }
+impl From<fs::Permissions> for PermissionBits {
+    fn from(fs_permissions: fs::Permissions) -> Self {
+        // u32 as i32, totally safe?
+        PermissionBits::from_bits_truncated(fs_permissions.mode() as c_int)
+    }
+}
+
+// #[allow(unused_imports)]
+// use super::{
+//     Classes::{AllClasses, Group, Other, Owner},
+//     ModeBits::{AllBits, Execute, Null, Read, Write},
+//     PermissionBits,
+// };
+
+// use std::fs::File;
+
+// let file: std::fs::File = File::open("foo.txt")?;
+// // Troca isso por um wrapper
+// // let mut perms = file.metadata()?.permissions();
+// let permissions = PermissionBits::try_from(file)?;
+
+// if permissions.get(Owner, Execute) {
+//     println!("Owner of file can execute");
 // }
+
+// if permissions.get(Other, Read | Write) {
+//     println!("Other users can read and write to this file!");
+// }
+
+// // Let's change permissions with set and unset
+// let permissions = permissions
+//     .unset(Owner, Execute)
+//     .set(Group, Read | Write)
+//     .reset(Other, Read);
+
+// perms.set_readonly(true);
+// file.set_permissions(perms)?;
