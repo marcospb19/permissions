@@ -14,7 +14,8 @@ use std::{ffi::CString, io, path::Path};
 /// to succeed. Be aware of [TOCTOU](https://en.wikipedia.org/wiki/Time-of-check_to_time-of-use)
 /// race conditions, and any other `io::Error` that can occur.
 pub fn is_file_removable(path: &impl AsRef<Path>) -> io::Result<bool> {
-    let parent = match path.as_ref().parent() {
+    let path = path.as_ref().canonicalize()?;
+    let parent = match path.parent() {
         // Cannot delete '/' (root)
         None => return Ok(false),
         Some(parent) => parent,
