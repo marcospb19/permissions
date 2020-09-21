@@ -1,54 +1,29 @@
+//! We need more examples and documentation lmao
+
+// Our compilation will fail for big-endian systems
+#[cfg(target_endian = "big")]
+compile_error!(
+    "Not safely tested on big_endian machines. Please, if you're in one, head to the repository https://github.com/marcospb19/unix_file_permissions and give feedback for us to pass all the tests".
+);
+
 #[allow(non_camel_case_types)]
 /// c_int in unix is always i32
 pub type c_int = i32;
 
+// Import macro from bitflags, it used to declare Classes and ModeBits.
 #[macro_use]
 extern crate bitflags;
 
-/// Classes of permissions in `Unix`
-pub mod classes;
+mod classes;
+mod functions;
+mod mode_bits;
+mod permission_bits;
+
+/// Classes of permissions in `Unix` _(Owner, Group, Other)_
 pub use classes::Classes;
-/// ModeBits enum.
-pub mod mode_bits;
+/// Very useful permission check functions.
+pub use functions::*;
+/// Mode permission bits _(Read, Write, Execute)_.
 pub use mode_bits::ModeBits;
-/// PermissionBits struct.
-pub mod permission_bits;
-
-// pub use classes::Classes;
-// pub use mode_bits::ModeBits;
-// pub use permission_bits::PermissionBits;
-
-// pub mod functions;
-
-// Import macro bitflags!
-
-// #[allow(unused_imports)]
-// use super::{
-//     Classes::{AllClasses, Group, Other, Owner},
-//     ModeBits::{AllBits, Execute, Null, Read, Write},
-//     PermissionBits,
-// };
-
-// use std::fs::File;
-
-// let file: std::fs::File = File::open("foo.txt")?;
-// // Troca isso por um wrapper
-// // let mut perms = file.metadata()?.permissions();
-// let permissions = PermissionBits::try_from(file)?;
-
-// if permissions.get(Owner, Execute) {
-//     println!("Owner of file can execute");
-// }
-
-// if permissions.get(Other, Read | Write) {
-//     println!("Other users can read and write to this file!");
-// }
-
-// // Let's change permissions with set and unset
-// let permissions = permissions
-//     .unset(Owner, Execute)
-//     .set(Group, Read | Write)
-//     .reset(Other, Read);
-
-// perms.set_readonly(true);
-// file.set_permissions(perms)?;
+/// PermissionBits...
+pub use permission_bits::PermissionBits;

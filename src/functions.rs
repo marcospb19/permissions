@@ -1,7 +1,11 @@
 use std::{ffi::CString, io, path::Path};
 
-/// To remove a file/directory in `Unix`, you'd need `W_OK` permission on the
-/// parent directory, this function wraps the call of `access(parent_dir, W_OK)`
+/// Check if current process has permission to remove file/directory at
+/// path.
+///
+/// To remove a file/directory in `Unix`, you'd need `W_OK` permission on
+/// theparent directory, this function wraps the call of `access(parent_dir,
+/// W_OK)`
 ///
 /// Note that having the permission to remove a file does not guarantee that the
 /// _I/O_ operation will be successful, it only means that it is very probably
