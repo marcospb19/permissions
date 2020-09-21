@@ -1,18 +1,26 @@
 #[allow(non_camel_case_types)]
-type bits_t = u32;
+/// c_int in unix is always i32
+pub type c_int = i32;
 
-/// Classes enum.
+#[macro_use]
+extern crate bitflags;
+
+/// Classes of permissions in `Unix`
 pub mod classes;
+pub use classes::Classes;
 /// ModeBits enum.
 pub mod mode_bits;
-/// Main feature: PermissionBits struct.
+pub use mode_bits::ModeBits;
+/// PermissionBits struct.
 pub mod permission_bits;
 
-pub use classes::Classes;
-pub use mode_bits::ModeBits;
-pub use permission_bits::PermissionBits;
+// pub use classes::Classes;
+// pub use mode_bits::ModeBits;
+// pub use permission_bits::PermissionBits;
 
-pub mod functions;
+// pub mod functions;
+
+// Import macro bitflags!
 
 // #[allow(unused_imports)]
 // use super::{
