@@ -1,6 +1,4 @@
-use unix_file_permissions::{
-    is_file_executable, is_file_readable, is_file_removable, is_file_writable,
-};
+use permissions::{is_file_executable, is_file_readable, is_file_removable, is_file_writable};
 
 use std::{
     env,

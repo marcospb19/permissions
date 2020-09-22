@@ -37,7 +37,7 @@ impl Classes {
 
 //     // // main just for testing
 //     // #[allow(unused_imports)]
-//     // use unix_file_permissions::{
+//     // use permissions::{
 //     //     Classes::{AllClasses, Group, Other, Owner},
 //     //     ModeBits::{AllBits, Execute, Null, Read, Write},
 //     //     PermissionBits,

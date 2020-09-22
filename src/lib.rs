@@ -3,7 +3,7 @@
 // Our compilation will fail for big-endian systems
 #[cfg(target_endian = "big")]
 compile_error!(
-    "Not safely tested on big_endian machines. Please, if you're in one, head to the repository https://github.com/marcospb19/unix_file_permissions and give feedback for us to pass all the tests".
+    "Not safely tested on big_endian machines. Please, if you're in one, head to the repository https://github.com/marcospb19/permissions and give feedback for us to pass all the tests".
 );
 
 #[allow(non_camel_case_types)]

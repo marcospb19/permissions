@@ -1,10 +1,10 @@
 [package]
-name = "unix_file_permissions"
-version = "0.1.0"
+name = "permissions"
+version = "0.0.1"
 authors = ["João M. Bezerra <marcospb19@hotmail.com>"]
 edition = "2018"
 description = "Friendly crate for dealing with unix file permissions."
-repository = "https://github.com/marcospb19/unix_file_permissions"
+repository = "https://github.com/marcospb19/permissions-rs"
 license = "MIT"
 
 [dependencies]
