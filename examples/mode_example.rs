@@ -1,3 +1,5 @@
+// This should only compiles on unix systems
+
 // use permissions::{Classes, ModeBits, PermissionBits};
 
 // use std::fs::File;
@@ -29,3 +31,4 @@
 
 // Pending
 // is set_readonly() == .unset(AllClasses, Write) ?????
+fn main() {}

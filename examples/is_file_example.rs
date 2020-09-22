@@ -1,3 +1,4 @@
+// Show usage of is_file_* functions
 use permissions::{is_file_executable, is_file_readable, is_file_removable, is_file_writable};
 
 use std::{
@@ -7,6 +8,7 @@ use std::{
 };
 
 fn main() -> io::Result<()> {
+    // Asserts with files
     let this_program_path = env::args().next().unwrap();
     assert!(is_file_executable(&this_program_path)?);
 
@@ -19,12 +21,12 @@ fn main() -> io::Result<()> {
     assert!(is_file_removable(&temp_file)?);
     fs::remove_file(temp_file)?;
 
-    // ---
+    // -------------------------
 
     // Let's try with directories too
     let temp_directory = "temp/";
     fs::create_dir(temp_directory)?;
-    assert!(is_file_readable(&this_file_parent_dir)?);
+    assert!(is_file_readable(&temp_directory)?);
     assert!(is_file_writable(&temp_directory)?);
     assert!(is_file_executable(&temp_directory)?);
     assert!(is_file_removable(&temp_directory)?);
