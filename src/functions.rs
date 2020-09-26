@@ -1,16 +1,15 @@
-use crate::ModeBits;
+use crate::{c_int, ModeBits};
 
-use std::{ffi::CString, io, path::Path};
+use std::{io, path::Path};
 
 /// Check if current process has permission to remove file/directory at
 /// path.
 ///
-/// To remove a file/directory in `Unix`, you'd need `W_OK` permission on
-/// theparent directory, this function wraps the call of `access(parent_dir,
-/// W_OK)`
+/// That is, if the current process has permission of `write` to the parent
+/// directory.
 ///
 /// Note that having the permission to remove a file does not guarantee that the
-/// _I/O_ operation will be successful, it only means that it is very probably
+/// removal operation will be successful, it only means that it is very probably
 /// to succeed. Be aware of [TOCTOU](https://en.wikipedia.org/wiki/Time-of-check_to_time-of-use)
 /// race conditions, and any other `io::Error` that can occur.
 pub fn is_file_removable(path: &impl AsRef<Path>) -> io::Result<bool> {
@@ -25,18 +24,57 @@ pub fn is_file_removable(path: &impl AsRef<Path>) -> io::Result<bool> {
 }
 
 /// Check if current process has permission to read file/directory at path.
+///
+/// Err() can be returned if there's no read permission in parent directories of
+/// `path`.
 pub fn is_file_readable(path: &impl AsRef<Path>) -> io::Result<bool> {
     access(&path.as_ref(), ModeBits::READ)
 }
 
 /// Check if current process has permission to write to file/directory at path.
+///
+/// Err() can be returned if there's no read permission in parent directories of
+/// `path`.
 pub fn is_file_writable(path: &impl AsRef<Path>) -> io::Result<bool> {
     access(&path.as_ref(), ModeBits::WRITE)
 }
 
 /// Check if current process has permission to execute file/directory at path.
+///
+/// Err() can be returned if there's no read permission in parent directories of
+/// `path`.
 pub fn is_file_executable(path: &impl AsRef<Path>) -> io::Result<bool> {
     access(&path.as_ref(), ModeBits::EXECUTE)
+}
+
+/// Safe function that wraps `libc::access` syscall and uses ModeBits.
+///
+/// `mode` is a mask consisting of the following `ModeBits` flags:
+///
+/// `READ`
+/// `WRITE`
+/// `EXECUTE`
+////
+/// if `mode == ModeBits::Null`, this function only checks if the file exists.
+///
+/// See access_syscall.
+pub fn access(path: &impl AsRef<Path>, modes: ModeBits) -> io::Result<bool> {
+    // Translating ModeBits to c_int
+    let mut mode_mask = 0;
+    if modes.is_read_set() {
+        mode_mask |= libc::R_OK;
+    }
+    if modes.is_write_set() {
+        mode_mask |= libc::W_OK;
+    }
+    if modes.is_execute_set() {
+        mode_mask |= libc::X_OK;
+    }
+    if mode_mask == 0 {
+        mode_mask |= libc::F_OK;
+    }
+
+    access_syscall(path, mode_mask)
 }
 
 /// Safe function that wraps `libc::access` syscall.
@@ -51,36 +89,41 @@ pub fn is_file_executable(path: &impl AsRef<Path>) -> io::Result<bool> {
 /// `man access`,
 /// `man 2 access`, or
 /// [online man page](https://man7.org/linux/man-pages/man2/access.2.html)
-pub fn access(path: &impl AsRef<Path>, modes: ModeBits) -> io::Result<bool> {
-    // Let's translate ModeBits to the c_int
-    let mut temp = 0;
-    if modes.is_read_set() {
-        temp |= libc::R_OK;
+pub fn access_syscall(path: &impl AsRef<Path>, mode_mask: c_int) -> io::Result<bool> {
+    let path = path.as_ref();
+
+    // https://stackoverflow.com/a/59224987/9982477
+    let mut buf = Vec::new();
+    let buf_ptr;
+    #[cfg(unix)]
+    {
+        use std::os::unix::ffi::OsStrExt;
+        buf.extend(path.as_os_str().as_bytes());
+        buf.push(0u8);
+        buf_ptr = buf.as_ptr() as *const libc::c_char;
     }
-    if modes.is_write_set() {
-        temp |= libc::W_OK;
-    }
-    if modes.is_execute_set() {
-        temp |= libc::X_OK;
-    }
-    // If nothing was set before, just check if the file exists with F_OK
-    // See references at function doc for more explanation
-    if temp == 0 {
-        temp |= libc::F_OK;
+    #[cfg(windows)]
+    {
+        use std::os::windows::ffi::OsStrExt;
+        buf.extend(
+            path.as_os_str()
+                .encode_wide()
+                .chain(Some(0u16))
+                .map(|b| {
+                    let b = b.to_ne_bytes();
+                    b.get(0).map(|s| *s).into_iter().chain(b.get(1).map(|s| *s))
+                })
+                .flatten(),
+        );
+        buf_ptr = buf.as_ptr() as *const libc::c_wchar_t;
     }
 
-    let modes = temp;
-
-    let bytes: Vec<u8> = path.as_ref().to_str().unwrap().bytes().collect();
-    let cstring = CString::new(bytes).unwrap();
-    let result = unsafe { libc::access(cstring.as_ptr(), modes) };
+    let result = unsafe { libc::access(buf_ptr, mode_mask) };
 
     if result == 0 {
-        Ok(true) // Permission
+        Ok(true)
     } else {
         assert!(result == -1);
-
-        // From errno
         let err = io::Error::last_os_error();
         if err.raw_os_error().unwrap() == libc::EACCES {
             Ok(false) // No permission to delete
