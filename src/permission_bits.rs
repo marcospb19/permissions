@@ -1,6 +1,9 @@
-use crate::{c_int, Classes, ModeBits};
+use crate::{Classes, ModeBits};
 
-use std::{fs, os::unix::fs::PermissionsExt};
+use std::{
+    fs,
+    os::{raw::c_int, unix::fs::PermissionsExt},
+};
 
 #[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Clone, Copy, Default)]
 pub struct PermissionBits {

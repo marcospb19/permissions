@@ -1,4 +1,4 @@
-use crate::c_int;
+use std::os::raw::c_int;
 
 bitflags! {
     /// Bits for each permission mode `rwx`: `Read`, `Write`, `Execute`, or a
@@ -13,7 +13,7 @@ bitflags! {
         const READ    = 0b100;
         const WRITE   = 0b010;
         const EXECUTE = 0b001;
-        const ALL_BITS = Self::READ.bits | Self::WRITE.bits | Self::EXECUTE.bits;
+        const ALL_BITS = 0b111;
     }
 }
 

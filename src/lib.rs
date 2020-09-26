@@ -6,10 +6,6 @@ compile_error!(
     "Not safely tested on big_endian machines. Please, if you're in one, head to the repository https://github.com/marcospb19/permissions and give feedback for us to pass all the tests".
 );
 
-#[allow(non_camel_case_types)]
-/// c_int in unix is always i32
-pub type c_int = i32;
-
 // Import macro from bitflags, it used to declare Classes and ModeBits.
 #[macro_use]
 extern crate bitflags;

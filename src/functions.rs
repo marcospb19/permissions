@@ -1,6 +1,6 @@
-use crate::{c_int, ModeBits};
+use crate::ModeBits;
 
-use std::{io, path::Path};
+use std::{io, os::raw::c_int, path::Path};
 
 /// Check if current process has permission to remove file/directory at
 /// path.

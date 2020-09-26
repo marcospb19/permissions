@@ -1,4 +1,4 @@
-use crate::c_int;
+use std::os::raw::c_int;
 
 bitflags! {
     /// Classes of permissions are: Owner, Group, Other, or a combination of them
@@ -7,7 +7,7 @@ bitflags! {
         const OWNER = 0b100;
         const GROUP = 0b010;
         const OTHER = 0b001;
-        const ALL_CLASSES = Self::OWNER.bits | Self::GROUP.bits | Self::OTHER.bits;
+        const ALL_CLASSES = 0b111;
     }
 }
 
