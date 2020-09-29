@@ -145,9 +145,16 @@ impl From<fs::Permissions> for PermissionBits {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::{Classes, ModeBits};
     #[test]
-    fn test_permissions_bits_set_and_remove() {
-        let permissions_bits = PermissionBits::from_bits(0o777);
+    fn test_permissions_bits_set_method() {
+        let permissions_bits = PermissionBits::from_bits(0o000)
+            .set(Classes::OWNER, ModeBits::READ, true)
+            .set(Classes::OWNER | Classes::GROUP, ModeBits::WRITE, true)
+            .set(Classes::OTHER, ModeBits::ALL_BITS, true)
+            .set(Classes::OTHER, ModeBits::READ | ModeBits::WRITE, false);
+
+        assert_eq!(permissions_bits.bits(), 0o621);
     }
 }
 
