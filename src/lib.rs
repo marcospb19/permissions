@@ -1,11 +1,5 @@
 //! We need more examples and documentation lmao
 
-// Our compilation will fail for big-endian systems
-#[cfg(target_endian = "big")]
-compile_error!(
-    "Not safely tested on big_endian machines. Please, if you're in one, head to the repository https://github.com/marcospb19/permissions and give feedback for us to pass all the tests".
-);
-
 // Import macro from bitflags, it used to declare Classes and ModeBits.
 #[macro_use]
 extern crate bitflags;

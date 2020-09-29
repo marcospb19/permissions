@@ -25,11 +25,11 @@ impl PermissionBits {
     /// Returns None if there are extra bits set, other than the last 9 bits
     /// expected (3 for the mode of each class)
     pub fn from_bits(bits: c_int) -> Option<Self> {
-        // Discard all bits that can appear in 0o777 and check for anything left
-        if bits >> 9 == 0 {
-            Some(PermissionBits::from_bits_truncated(bits))
-        } else {
+        // Check if there's more than 0o777
+        if bits & !0o777 != 0 {
             None
+        } else {
+            Some(PermissionBits::from_bits_truncated(bits))
         }
     }
 
