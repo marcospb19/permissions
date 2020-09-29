@@ -25,18 +25,17 @@ impl Classes {
     }
 }
 
-// #[cfg(test)]
-// mod tests {
-
-//     #[test]
-//     fn test() {
-//         println!("oi");
-//     }
-
-//     //     #[test]
-
-//     // // main just for testing
-//     // #[allow(unused_imports)]
+#[cfg(test)]
+mod tests {
+    use super::*;
+    #[test]
+    fn test_classes_impl() {
+        let classes = Classes::ALL_CLASSES;
+        assert!(classes.is_owner_set());
+        assert!(classes.is_group_set());
+        assert!(classes.is_other_set());
+    }
+}
 //     // use permissions::{
 //     //     Classes::{AllClasses, Group, Other, Owner},
 //     //     ModeBits::{AllBits, Execute, Null, Read, Write},
@@ -52,5 +51,3 @@ impl Classes {
 
 //     //     println!("{:#?}", c);
 //     //     Ok(())
-//     // }
-// }

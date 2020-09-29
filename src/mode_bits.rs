@@ -3,11 +3,6 @@ use std::os::raw::c_int;
 bitflags! {
     /// Bits for each permission mode `rwx`: `Read`, `Write`, `Execute`, or a
     /// _combination_.
-    ///
-    /// To check those 3 bits, try:
-    /// ```sh
-    /// ls -l .
-    /// ```
     pub struct ModeBits: c_int {
         const NULL    = 0b000;
         const READ    = 0b100;
@@ -37,9 +32,17 @@ impl ModeBits {
     }
 }
 
-// #[cfg(test)]
-// mod tests {
-//     use crate::ModeBits::{self, *};
+#[cfg(test)]
+mod tests {
+    use super::*;
+    #[test]
+    fn test_mode_bits_impl() {
+        let classes = ModeBits::ALL_BITS;
+        assert!(classes.is_read_set());
+        assert!(classes.is_write_set());
+        assert!(classes.is_execute_set());
+    }
+}
 
 //     #[test]
 //     fn test_explicit_variants_against_custom() {
