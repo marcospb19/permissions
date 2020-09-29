@@ -22,18 +22,21 @@ impl PermissionBits {
         }
     }
 
+    /// Constructs from bits with checks.
+    ///
     /// Returns None if there are extra bits set, other than the last 9 bits
     /// expected (3 for the mode of each class)
-    pub fn from_bits(bits: c_int) -> Option<Self> {
+    pub fn from_bits_checked(bits: c_int) -> Option<Self> {
         // Check if there's more than 0o777
         if bits & !0o777 != 0 {
             None
         } else {
-            Some(PermissionBits::from_bits_truncated(bits))
+            Some(PermissionBits::from_bits(bits))
         }
     }
 
-    pub fn from_bits_truncated(bits: c_int) -> Self {
+    /// Constructs from bits without checks.
+    pub fn from_bits(bits: c_int) -> Self {
         let owner: c_int = bits & 0o700;
         let group: c_int = bits & 0o070;
         let other: c_int = bits & 0o007;
@@ -134,8 +137,17 @@ impl PermissionBits {
 
 impl From<fs::Permissions> for PermissionBits {
     fn from(fs_permissions: fs::Permissions) -> Self {
-        // u32 as i32, totally safe?
-        PermissionBits::from_bits_truncated(fs_permissions.mode() as c_int)
+        // Is this cast safe?
+        PermissionBits::from_bits(fs_permissions.mode() as c_int)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    #[test]
+    fn test_permissions_bits_set_and_remove() {
+        let permissions_bits = PermissionBits::from_bits(0o777);
     }
 }
 
