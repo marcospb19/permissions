@@ -12,7 +12,7 @@ use std::{io, os::raw::c_int, path::Path};
 /// removal operation will be successful, it only means that it is very probably
 /// to succeed. Be aware of [TOCTOU](https://en.wikipedia.org/wiki/Time-of-check_to_time-of-use)
 /// race conditions, and any other `io::Error` that can occur.
-pub fn is_file_removable(path: &impl AsRef<Path>) -> io::Result<bool> {
+pub fn is_file_removable(path: impl AsRef<Path>) -> io::Result<bool> {
     let path = path.as_ref().canonicalize()?;
     let parent = match path.parent() {
         // Cannot delete '/' (root)
@@ -27,7 +27,7 @@ pub fn is_file_removable(path: &impl AsRef<Path>) -> io::Result<bool> {
 ///
 /// Err() can be returned if there's no read permission in parent directories of
 /// `path`.
-pub fn is_file_readable(path: &impl AsRef<Path>) -> io::Result<bool> {
+pub fn is_file_readable(path: impl AsRef<Path>) -> io::Result<bool> {
     access(&path.as_ref(), ModeBits::READ)
 }
 
@@ -35,7 +35,7 @@ pub fn is_file_readable(path: &impl AsRef<Path>) -> io::Result<bool> {
 ///
 /// Err() can be returned if there's no read permission in parent directories of
 /// `path`.
-pub fn is_file_writable(path: &impl AsRef<Path>) -> io::Result<bool> {
+pub fn is_file_writable(path: impl AsRef<Path>) -> io::Result<bool> {
     access(&path.as_ref(), ModeBits::WRITE)
 }
 
@@ -43,7 +43,7 @@ pub fn is_file_writable(path: &impl AsRef<Path>) -> io::Result<bool> {
 ///
 /// Err() can be returned if there's no read permission in parent directories of
 /// `path`.
-pub fn is_file_executable(path: &impl AsRef<Path>) -> io::Result<bool> {
+pub fn is_file_executable(path: impl AsRef<Path>) -> io::Result<bool> {
     access(&path.as_ref(), ModeBits::EXECUTE)
 }
 
@@ -58,7 +58,7 @@ pub fn is_file_executable(path: &impl AsRef<Path>) -> io::Result<bool> {
 /// if `mode == ModeBits::Null`, this function only checks if the file exists.
 ///
 /// See access_syscall.
-pub fn access(path: &impl AsRef<Path>, modes: ModeBits) -> io::Result<bool> {
+pub fn access(path: impl AsRef<Path>, modes: ModeBits) -> io::Result<bool> {
     // Translating ModeBits to c_int
     let mut mode_mask = 0;
     if modes.is_read_set() {
@@ -89,7 +89,7 @@ pub fn access(path: &impl AsRef<Path>, modes: ModeBits) -> io::Result<bool> {
 /// `man access`,
 /// `man 2 access`, or
 /// [online man page](https://man7.org/linux/man-pages/man2/access.2.html)
-pub fn access_syscall(path: &impl AsRef<Path>, mode_mask: c_int) -> io::Result<bool> {
+pub fn access_syscall(path: impl AsRef<Path>, mode_mask: c_int) -> io::Result<bool> {
     let path = path.as_ref();
 
     // https://stackoverflow.com/a/59224987/9982477
