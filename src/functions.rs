@@ -1,4 +1,3 @@
-use crate::ModeBits;
 
 use std::{io, os::raw::c_int, path::Path};
 

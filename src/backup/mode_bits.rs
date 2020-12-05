@@ -1,14 +1,13 @@
 use std::os::raw::c_int;
 
 bitflags! {
-    /// Bits for each permission mode `rwx`: `Read`, `Write`, `Execute`, or a
-    /// _combination_.
+    /// Bits for combination of `rwx` modes (`Read`, `Write` and `Execute`).
     pub struct ModeBits: c_int {
         const NULL    = 0b000;
-        const READ    = 0b100;
-        const WRITE   = 0b010;
-        const EXECUTE = 0b001;
-        const ALL_BITS = 0b111;
+        const READ    = libc::R_OK;
+        const WRITE   = libc::W_OK;
+        const EXECUTE = libc::X_OK;
+        const ALL_BITS = libc::R_OK | libc::W_OK | libc::X_OK;
     }
 }
 
@@ -42,6 +41,9 @@ mod tests {
         assert!(classes.is_write_set());
         assert!(classes.is_execute_set());
     }
+
+    #[test]
+    fn testando() {}
 }
 
 //     #[test]
