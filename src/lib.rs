@@ -1,4 +1,8 @@
 //! # Permissions crate
+//! [![Crates.io](https://img.shields.io/crates/v/permissions.svg)](https://crates.io/crates/permissions)
+//! [![License](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/marcospb19/permissions/blob/main/LICENSE)
+//! [![Docs.rs](https://docs.rs/permissions/badge.svg)](https://docs.rs/permissions)
+//!
 //! Useful filesystem queries for file permissions:
 //! - [`is_file_executable`]
 //! - [`is_file_readable`]
@@ -43,7 +47,7 @@
 //! It's easy to contribute to this crate, here are some options:
 //!
 //! - Share it to a friend.
-//! - Help improve this README.md or other docs (even with little details).
+//! - Help improve this README or other docs (even with little details).
 //! - Open an issue or PR in the repository.
 //! - Leave a star on GitHub.
 //! - Use it!!!

@@ -1,13 +1,17 @@
 # permissions
 
 ## Permissions crate
-Useful filesystem queries for file permissions:
-- [`is_file_executable`]
-- [`is_file_readable`]
-- [`is_file_writable`]
-- [`is_file_removable`]
+[![Crates.io](https://img.shields.io/crates/v/permissions.svg)](https://crates.io/crates/permissions)
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/marcospb19/permissions/blob/main/LICENSE)
+[![Docs.rs](https://docs.rs/permissions/badge.svg)](https://docs.rs/permissions)
 
-See [`functions`].
+Useful filesystem queries for file permissions:
+- `is_file_executable`
+- `is_file_readable`
+- `is_file_writable`
+- `is_file_removable`
+
+See `functions`.
 
 ## Cross-platform
 I tested this lib to work in `Unix` systems, I'm not sure about `Windows`
@@ -45,7 +49,7 @@ bitflags are already available at the project's repository.
 It's easy to contribute to this crate, here are some options:
 
 - Share it to a friend.
-- Help improve this README.md or other docs (even with little details).
+- Help improve this README or other docs (even with little details).
 - Open an issue or PR in the repository.
 - Leave a star on GitHub.
 - Use it!!!
