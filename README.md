@@ -10,7 +10,7 @@ Functions available:
 ```rust
 is_file_executable
 is_file_readable
-is_file_writablea
+is_file_writable
 is_file_removable
 ```
 
