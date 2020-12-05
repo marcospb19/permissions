@@ -1,16 +1,45 @@
+//! Check for permissions at a path using [`access_syscall`].
+//!
+//! Having permission of reading, writing, executing or deleting a file does not
+//! guarantee success in doing so, it is unlikely but IO can fail.
+//!
+//! Also be careful with [`TOCTOU race conditions`], when you have outdated file
+//! system information that has changed since the last check.
+//!
+//! [`TOCTOU race conditions`]: https://en.wikipedia.org/wiki/Time-of-check_to_time-of-use
 
 use std::{io, os::raw::c_int, path::Path};
 
-/// Check if current process has permission to remove file/directory at
-/// path.
+/// Check if current process has permission to remove file.
 ///
 /// That is, if the current process has permission of `write` to the parent
 /// directory.
 ///
-/// Note that having the permission to remove a file does not guarantee that the
-/// removal operation will be successful, it only means that it is very probably
-/// to succeed. Be aware of [TOCTOU](https://en.wikipedia.org/wiki/Time-of-check_to_time-of-use)
-/// race conditions, and any other `io::Error` that can occur.
+/// Returns `false` if there's no parent directory (because can't delete the
+/// system's root).
+///
+/// # Errors
+///
+/// - If [`Path::canonicalize`] fails.
+/// - Same as [`access_syscall`].
+///
+/// # Examples
+/// ```
+/// use permissions::is_file_removable;
+/// use std::io;
+///
+/// fn main() -> io::Result<()> {
+///     println!("{:?}", is_file_removable("src/lib.rs")?);
+///     println!("{:?}", is_file_removable("/root")?);
+///     println!("{:?}", is_file_removable("/")?);
+///
+///     // May return `Err(kind: PermissionDenied)`
+///     // println!("{:?}", is_file_removable("/root/any")?);
+///
+///     Ok(())
+/// }
+/// ```
+/// [`Path::canonicalize`]: std::path::Path::canonicalize
 pub fn is_file_removable(path: impl AsRef<Path>) -> io::Result<bool> {
     let path = path.as_ref().canonicalize()?;
     let parent = match path.parent() {
@@ -19,79 +48,137 @@ pub fn is_file_removable(path: impl AsRef<Path>) -> io::Result<bool> {
         Some(parent) => parent,
     };
 
-    access(&parent, ModeBits::WRITE)
+    access_syscall(&parent, libc::W_OK)
 }
 
-/// Check if current process has permission to read file/directory at path.
+/// Check if current process has permission to read.
 ///
-/// Err() can be returned if there's no read permission in parent directories of
-/// `path`.
+/// # Errors
+/// Same as [`access_syscall`].
+///
+/// # Examples
+/// ```
+/// use permissions::is_file_readable;
+/// use std::io;
+///
+/// fn main() -> io::Result<()> {
+///     println!("{:?}", is_file_readable("src/lib.rs")?);
+///     println!("{:?}", is_file_readable("/root")?);
+///     println!("{:?}", is_file_readable("/")?);
+///
+///     // may return `Err(kind: PermissionDenied)`
+///     // println!("{:?}", is_file_readable("/root/any")?);
+///
+///     Ok(())
+/// }
+/// ```
 pub fn is_file_readable(path: impl AsRef<Path>) -> io::Result<bool> {
-    access(&path.as_ref(), ModeBits::READ)
+    access_syscall(&path.as_ref(), libc::R_OK)
 }
 
-/// Check if current process has permission to write to file/directory at path.
+/// Check if current process has permission to write.
 ///
-/// Err() can be returned if there's no read permission in parent directories of
-/// `path`.
+/// # Errors
+/// Same as [`access_syscall`].
+///
+/// # Examples
+/// ```
+/// use permissions::is_file_writable;
+/// use std::io;
+///
+/// fn main() -> io::Result<()> {
+///     println!("{:?}", is_file_writable("src/lib.rs")?);
+///     println!("{:?}", is_file_writable("/root")?);
+///     println!("{:?}", is_file_writable("/")?);
+///
+///     // may return `Err(kind: PermissionDenied)`
+///     // println!("{:?}", is_file_writable("/root/any")?);
+///
+///     Ok(())
+/// }
+/// ```
 pub fn is_file_writable(path: impl AsRef<Path>) -> io::Result<bool> {
-    access(&path.as_ref(), ModeBits::WRITE)
+    access_syscall(&path.as_ref(), libc::W_OK)
 }
 
-/// Check if current process has permission to execute file/directory at path.
+/// Check if current process has permission to execute.
 ///
-/// Err() can be returned if there's no read permission in parent directories of
-/// `path`.
+/// If `path` points to a directory, you'll be checking if you have the right to
+/// enter it.
+///
+/// # Errors
+/// Same as [`access_syscall`].
+///
+/// # Examples
+/// ```
+/// use permissions::is_file_executable;
+/// use std::io;
+///
+/// fn main() -> io::Result<()> {
+///     assert!(is_file_executable("/usr/bin/cat")?);
+///     assert!(is_file_executable("/")?);
+///     assert!(is_file_executable("src/")?);
+///     assert!(!is_file_executable("src/lib.rs")?);
+///     assert!(!is_file_executable("/root")?);
+///
+///     // may return `Err(kind: PermissionDenied)`
+///     // println!("{:?}", is_file_executable("/root/any")?);
+///
+///     Ok(())
+/// }
+/// ```
 pub fn is_file_executable(path: impl AsRef<Path>) -> io::Result<bool> {
-    access(&path.as_ref(), ModeBits::EXECUTE)
+    access_syscall(&path.as_ref(), libc::X_OK)
 }
 
-/// Safe function that wraps `libc::access` syscall and uses ModeBits.
+/// Safe wrapper to the `libc::access` syscall.
 ///
-/// `mode` is a mask consisting of the following `ModeBits` flags:
+/// See [`access man page`].
 ///
-/// `READ`
-/// `WRITE`
-/// `EXECUTE`
-////
-/// if `mode == ModeBits::Null`, this function only checks if the file exists.
+/// Used by:
+/// - [`is_file_removable`]
+/// - [`is_file_readable`]
+/// - [`is_file_writable`]
+/// - [`is_file_executable`]
 ///
-/// See access_syscall.
-pub fn access(path: impl AsRef<Path>, modes: ModeBits) -> io::Result<bool> {
-    // Translating ModeBits to c_int
-    let mut mode_mask = 0;
-    if modes.is_read_set() {
-        mode_mask |= libc::R_OK;
-    }
-    if modes.is_write_set() {
-        mode_mask |= libc::W_OK;
-    }
-    if modes.is_execute_set() {
-        mode_mask |= libc::X_OK;
-    }
-    if mode_mask == 0 {
-        mode_mask |= libc::F_OK;
-    }
-
-    access_syscall(path, mode_mask)
-}
-
-/// Safe function that wraps `libc::access` syscall.
+/// This function requires a bitmask made of:
+/// - [`libc::R_OK`] _(Read)_
+/// - [`libc::W_OK`] _(Write)_
+/// - [`libc::X_OK`] _(Execute)_
 ///
-/// `mode: ModeBits` can be a mask consisting of the bitwise _OR_ of one or more
-/// of `R_OK`, `W_OK`, and `X_OK`.
+/// To check for each given `rwx` permission, or:
+/// - [`libc::F_OK`] _(File exists)_
 ///
-/// If `mode` is an empty mask, this function passes `F_OK` and only checks if
-/// the file exists.
+/// Otherwise, the function fails with [`Err(kind:
+/// InvalidInput)`](std::io::ErrorKind::InvalidInput)
 ///
-/// References:
-/// `man access`,
-/// `man 2 access`, or
-/// [online man page](https://man7.org/linux/man-pages/man2/access.2.html)
+/// # Examples:
+///
+/// ```
+/// use permissions::access_syscall;
+/// use libc::{R_OK, W_OK, X_OK, F_OK};
+///
+/// fn main() -> std::io::Result<()> {
+///     assert!(access_syscall("src/lib.rs", R_OK | W_OK)?);
+///     assert!(access_syscall("/", R_OK | X_OK)?);
+///     assert!(access_syscall(".", F_OK)?);
+///
+///     assert!(!access_syscall("src/lib.rs", X_OK)?);
+///     assert!(!access_syscall("/root", W_OK)?);
+///
+///     Ok(())
+/// }
+/// ```
+///
+/// # Errors
+/// See [`access man page`].
+///
+/// [`io::Error`]: std::io::Error
+/// [`access man page`]: https://man7.org/linux/man-pages/man2/access.2.html
 pub fn access_syscall(path: impl AsRef<Path>, mode_mask: c_int) -> io::Result<bool> {
     let path = path.as_ref();
 
-    // https://stackoverflow.com/a/59224987/9982477
+    // Syscall for unix and windows systems: https://stackoverflow.com/a/59224987/9982477
     let mut buf = Vec::new();
     let buf_ptr;
     #[cfg(unix)]
@@ -117,17 +204,43 @@ pub fn access_syscall(path: impl AsRef<Path>, mode_mask: c_int) -> io::Result<bo
         buf_ptr = buf.as_ptr() as *const libc::c_wchar_t;
     }
 
-    let result = unsafe { libc::access(buf_ptr, mode_mask) };
+    let access_return_code = unsafe { libc::access(buf_ptr, mode_mask) };
 
-    if result == 0 {
-        Ok(true)
-    } else {
-        assert!(result == -1);
-        let err = io::Error::last_os_error();
-        if err.raw_os_error().unwrap() == libc::EACCES {
-            Ok(false) // No permission to delete
-        } else {
-            Err(err) // Could not check permission to delete, error
-        }
+    match access_return_code {
+        0 => Ok(true),
+        _ => {
+            let err = io::Error::last_os_error();
+            if err.raw_os_error().unwrap() == libc::EACCES {
+                Ok(false) // Ok, no permission to delete
+            } else {
+                Err(err) // Syscall error
+            }
+        },
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use libc::{F_OK, R_OK, W_OK, X_OK};
+
+    #[test]
+    fn test_access_syscall() {
+        assert!(access_syscall("src/", F_OK | R_OK | W_OK | X_OK).unwrap());
+        assert!(access_syscall("src/", F_OK).unwrap());
+        assert!(access_syscall("src/", R_OK).unwrap());
+        assert!(access_syscall("src/", W_OK).unwrap());
+        assert!(access_syscall("src/", X_OK).unwrap());
+
+        assert!(!access_syscall("src/lib.rs", X_OK).unwrap());
+        assert!(!access_syscall("src/lib.rs", X_OK | R_OK).unwrap());
+        assert!(!access_syscall("src/lib.rs", X_OK | W_OK).unwrap());
+        assert!(!access_syscall("src/lib.rs", X_OK | F_OK).unwrap());
+
+        assert!(access_syscall("path_doesnt_exist/", F_OK).is_err()); // invalid path
+        assert!(access_syscall("src/", 0b11111).is_err()); // invalid number
+
+        assert!(!access_syscall("src/lib.rs", X_OK).unwrap());
+        assert!(!is_file_removable("/").unwrap());
     }
 }
