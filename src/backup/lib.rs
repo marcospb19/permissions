@@ -8,15 +8,15 @@
 //! # Cross-platform functions section:
 //! Set of useful functions:
 //! ```ignore
-//! is_file_executable
-//! is_file_readable
-//! is_file_writable
-//! is_file_removable
+//! is_executable
+//! is_readable
+//! is_writable
+//! is_removable
 //! ```
 //!
 //! ## Example:
 //! ```rust
-//! use permissions::is_file_removable;
+//! use permissions::is_removable;
 //!
 //! use std::{fs, io};
 //!
@@ -24,7 +24,7 @@
 //!    for entry in fs::read_dir("~/.local/share/Trash/files/")? {
 //!        let entry = entry?;
 //!
-//!        if !is_file_removable(entry.path())? {
+//!        if !is_removable(entry.path())? {
 //!            return Ok(false);
 //!        }
 //!    }

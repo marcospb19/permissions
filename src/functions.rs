@@ -25,22 +25,22 @@ use std::{io, os::raw::c_int, path::Path};
 ///
 /// # Examples
 /// ```
-/// use permissions::is_file_removable;
+/// use permissions::is_removable;
 /// use std::io;
 ///
 /// fn main() -> io::Result<()> {
-///     println!("{:?}", is_file_removable("src/lib.rs")?);
-///     println!("{:?}", is_file_removable("/root")?);
-///     println!("{:?}", is_file_removable("/")?);
+///     println!("{:?}", is_removable("src/lib.rs")?);
+///     println!("{:?}", is_removable("/root")?);
+///     println!("{:?}", is_removable("/")?);
 ///
 ///     // May return `Err(kind: PermissionDenied)`
-///     // println!("{:?}", is_file_removable("/root/any")?);
+///     // println!("{:?}", is_removable("/root/any")?);
 ///
 ///     Ok(())
 /// }
 /// ```
 /// [`Path::canonicalize`]: std::path::Path::canonicalize
-pub fn is_file_removable(path: impl AsRef<Path>) -> io::Result<bool> {
+pub fn is_removable(path: impl AsRef<Path>) -> io::Result<bool> {
     let path = path.as_ref().canonicalize()?;
     let parent = match path.parent() {
         // Cannot delete '/' (root)
@@ -58,21 +58,21 @@ pub fn is_file_removable(path: impl AsRef<Path>) -> io::Result<bool> {
 ///
 /// # Examples
 /// ```
-/// use permissions::is_file_readable;
+/// use permissions::is_readable;
 /// use std::io;
 ///
 /// fn main() -> io::Result<()> {
-///     println!("{:?}", is_file_readable("src/lib.rs")?);
-///     println!("{:?}", is_file_readable("/root")?);
-///     println!("{:?}", is_file_readable("/")?);
+///     println!("{:?}", is_readable("src/lib.rs")?);
+///     println!("{:?}", is_readable("/root")?);
+///     println!("{:?}", is_readable("/")?);
 ///
 ///     // may return `Err(kind: PermissionDenied)`
-///     // println!("{:?}", is_file_readable("/root/any")?);
+///     // println!("{:?}", is_readable("/root/any")?);
 ///
 ///     Ok(())
 /// }
 /// ```
-pub fn is_file_readable(path: impl AsRef<Path>) -> io::Result<bool> {
+pub fn is_readable(path: impl AsRef<Path>) -> io::Result<bool> {
     access_syscall(&path.as_ref(), libc::R_OK)
 }
 
@@ -83,21 +83,21 @@ pub fn is_file_readable(path: impl AsRef<Path>) -> io::Result<bool> {
 ///
 /// # Examples
 /// ```
-/// use permissions::is_file_writable;
+/// use permissions::is_writable;
 /// use std::io;
 ///
 /// fn main() -> io::Result<()> {
-///     println!("{:?}", is_file_writable("src/lib.rs")?);
-///     println!("{:?}", is_file_writable("/root")?);
-///     println!("{:?}", is_file_writable("/")?);
+///     println!("{:?}", is_writable("src/lib.rs")?);
+///     println!("{:?}", is_writable("/root")?);
+///     println!("{:?}", is_writable("/")?);
 ///
 ///     // may return `Err(kind: PermissionDenied)`
-///     // println!("{:?}", is_file_writable("/root/any")?);
+///     // println!("{:?}", is_writable("/root/any")?);
 ///
 ///     Ok(())
 /// }
 /// ```
-pub fn is_file_writable(path: impl AsRef<Path>) -> io::Result<bool> {
+pub fn is_writable(path: impl AsRef<Path>) -> io::Result<bool> {
     access_syscall(&path.as_ref(), libc::W_OK)
 }
 
@@ -111,23 +111,23 @@ pub fn is_file_writable(path: impl AsRef<Path>) -> io::Result<bool> {
 ///
 /// # Examples
 /// ```
-/// use permissions::is_file_executable;
+/// use permissions::is_executable;
 /// use std::io;
 ///
 /// fn main() -> io::Result<()> {
-///     assert!(is_file_executable("/usr/bin/cat")?);
-///     assert!(is_file_executable("/")?);
-///     assert!(is_file_executable("src/")?);
-///     assert!(!is_file_executable("src/lib.rs")?);
-///     assert!(!is_file_executable("/root")?);
+///     assert!(is_executable("/usr/bin/cat")?);
+///     assert!(is_executable("/")?);
+///     assert!(is_executable("src/")?);
+///     assert!(!is_executable("src/lib.rs")?);
+///     assert!(!is_executable("/root")?);
 ///
 ///     // may return `Err(kind: PermissionDenied)`
-///     // println!("{:?}", is_file_executable("/root/any")?);
+///     // println!("{:?}", is_executable("/root/any")?);
 ///
 ///     Ok(())
 /// }
 /// ```
-pub fn is_file_executable(path: impl AsRef<Path>) -> io::Result<bool> {
+pub fn is_executable(path: impl AsRef<Path>) -> io::Result<bool> {
     access_syscall(&path.as_ref(), libc::X_OK)
 }
 
@@ -136,10 +136,10 @@ pub fn is_file_executable(path: impl AsRef<Path>) -> io::Result<bool> {
 /// See [`access man page`].
 ///
 /// Used by:
-/// - [`is_file_removable`]
-/// - [`is_file_readable`]
-/// - [`is_file_writable`]
-/// - [`is_file_executable`]
+/// - [`is_removable`]
+/// - [`is_readable`]
+/// - [`is_writable`]
+/// - [`is_executable`]
 ///
 /// This function requires a bitmask made of:
 /// - [`libc::R_OK`] _(Read)_
@@ -241,6 +241,6 @@ mod tests {
         assert!(access_syscall("src/", 0b11111).is_err()); // invalid number
 
         assert!(!access_syscall("src/lib.rs", X_OK).unwrap());
-        assert!(!is_file_removable("/").unwrap());
+        assert!(!is_removable("/").unwrap());
     }
 }

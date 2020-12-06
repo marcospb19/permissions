@@ -6,10 +6,10 @@
 [![Docs.rs](https://docs.rs/permissions/badge.svg)](https://docs.rs/permissions)
 
 Useful filesystem queries for file permissions:
-- `is_file_executable`
-- `is_file_readable`
-- `is_file_writable`
-- `is_file_removable`
+- `is_executable`
+- `is_readable`
+- `is_writable`
+- `is_removable`
 
 See `functions`.
 
@@ -22,10 +22,10 @@ compatibility (PR welcome! if you can test it and update this section).
 use permissions::*;
 
 fn main() -> std::io::Result<()> {
-   println!("{:?}", is_file_readable("src/lib.rs")?);
-   println!("{:?}", is_file_writable("src/lib.rs")?);
-   println!("{:?}", is_file_executable("src/lib.rs")?);
-   println!("{:?}", is_file_removable("src/lib.rs")?);
+   println!("{:?}", is_readable("src/lib.rs")?);
+   println!("{:?}", is_writable("src/lib.rs")?);
+   println!("{:?}", is_executable("src/lib.rs")?);
+   println!("{:?}", is_removable("src/lib.rs")?);
 
    Ok(())
 }
