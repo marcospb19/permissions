@@ -30,15 +30,15 @@
 //! ```
 //!
 //! # More about it
-//! For the 0.2 version I plan on adding an nicer `rwx` bitmask interface, if
+//! For the 0.3 version I plan on adding an nicer `rwx` bitmask interface, if
 //! you're interested, open an issue and I'll consider completing it sooner.
 //!
-//! I haven't finished 0.2 because I didn't needed it, I just needed this crate
+//! I haven't finished 0.3 because I didn't needed it, I just needed this crate
 //! to implement what's in 0.1 for other project of mine, that's why I'm waiting
 //! for someone to ask me to implement it before I do so.
 //!
 //! I also want to ask what are the needs of other people for these features in
-//! 0.2.
+//! 0.3.
 //!
 //! Part of the code for `rwx` and `(Owner | Group | Other)` permissions
 //! bitflags are already available at the project's repository.

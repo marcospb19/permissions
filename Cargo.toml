@@ -3,7 +3,7 @@ name = "permissions"
 version = "0.1.1"
 authors = ["João M. Bezerra <marcospb19@hotmail.com>"]
 edition = "2018"
-description = "Library to query for file permissions (`rwx` and removal)."
+description = "Library to query for file permissions (read, write, execute, and removal)."
 
 categories = ["api-bindings", "filesystem", "os"]
 keywords = ["permission", "file", "filesystem"]
@@ -13,4 +13,4 @@ license = "MIT"
 
 [dependencies]
 libc = "0.2"
-bitflags = "1.2"
+# bitflags = "1.2" # For next features
