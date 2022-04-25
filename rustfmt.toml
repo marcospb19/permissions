@@ -1,13 +1,11 @@
-max_width = 100
-comment_width = 80
-merge_imports = true
-match_block_trailing_comma = true
+# Stable features
+edition = "2021"
+reorder_imports = true
+reorder_modules = true
 newline_style = "Unix"
-overflow_delimited_expr = true
-reorder_impl_items = true
-use_field_init_shorthand = true
-edition = "2018"
 
+# Unstable features
 unstable_features = true
-format_strings = true
-wrap_comments = true
+force_multiline_blocks = true
+group_imports = "StdExternalCrate"
+imports_granularity = "Crate"
