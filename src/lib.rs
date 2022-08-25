@@ -11,9 +11,10 @@
 //!
 //! See [`functions`].
 //!
-//! # Cross-platform
-//! I tested this lib to work in `Unix` systems, I'm not sure about `Windows`
-//! compatibility (PR welcome! if you can test it and update this section).
+//! # No `Windows` support
+//! This library compiles for `Unix` systems, PRs for fixing it for `Windows` are welcome.
+//!
+//! See [this issue](https://github.com/marcospb19/permissions/issues/2).
 //!
 //! # Examples:
 //! ```rust
