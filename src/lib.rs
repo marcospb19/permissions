@@ -11,10 +11,10 @@
 //!
 //! See [`functions`].
 //!
-//! # No `Windows` support
-//! This library compiles for `Unix` systems, PRs for fixing it for `Windows` are welcome.
+//! # `Windows` support
+//! This library now supports `Windows` systems, however, it hasn't been fully tested.
 //!
-//! See [this issue](https://github.com/marcospb19/permissions/issues/2).
+//! Please, open an issue if you find any problems.
 //!
 //! # Examples:
 //! ```rust
