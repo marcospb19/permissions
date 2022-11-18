@@ -4,54 +4,52 @@
 //! [![Docs.rs](https://docs.rs/permissions/badge.svg)](https://docs.rs/permissions)
 //!
 //! Useful filesystem queries for file permissions:
-//! - [`is_executable`]
-//! - [`is_readable`]
-//! - [`is_writable`]
-//! - [`is_removable`]
+//!
+//! See [`functions`](https://docs.rs/permissions/latest/permissions/functions/index.html).
+//! - [`is_executable`](https://docs.rs/permissions/latest/permissions/functions/fn.is_executable.html)
+//! - [`is_readable`](https://docs.rs/permissions/latest/permissions/functions/fn.is_readable.html)
+//! - [`is_writable`](https://docs.rs/permissions/latest/permissions/functions/fn.is_writable.html)
+//! - [`is_removable`](https://docs.rs/permissions/latest/permissions/functions/fn.is_removable.html)
+//! - [`is_creatable`](https://docs.rs/permissions/latest/permissions/functions/fn.is_creatable.html)
 //!
 //! See [`functions`].
 //!
 //! # `Windows` support
-//! This library now supports `Windows` systems, however, it hasn't been fully tested.
+//! This library now supports `Windows`, however, it hasn't been fully tested.
 //!
 //! Please, open an issue if you find any problems.
 //!
 //! # Examples:
-//! ```rust
+//! ```
 //! use permissions::*;
 //!
 //! fn main() -> std::io::Result<()> {
-//!    println!("{:?}", is_readable("src/lib.rs")?);
-//!    println!("{:?}", is_writable("src/lib.rs")?);
-//!    println!("{:?}", is_executable("src/lib.rs")?);
-//!    println!("{:?}", is_removable("src/lib.rs")?);
+//!    // Functions accept `AsRef<Path>`
+//!    assert!(is_readable("src/")?);
+//!    assert!(is_writable("src/")?);
+//!    assert!(is_writable("src/lib.rs")?);
+//!    assert!(is_executable("/usr/bin/cat")?);
+//!    assert!(is_removable("src/lib.rs")?);
+//!    assert!(is_creatable("src/file.rs")?);
 //!
 //!    Ok(())
 //! }
 //! ```
 //!
-//! # More about it
-//! For the 0.3 version I plan on adding an nicer `rwx` bitmask interface, if
-//! you're interested, open an issue and I'll consider completing it sooner.
+//! # Future
+//! I plan on adding a `rwx` permission interface, but I never needed it.
 //!
-//! I haven't finished 0.3 because I didn't needed it, I just needed this crate
-//! to implement what's in 0.1 for other project of mine, that's why I'm waiting
-//! for someone to ask me to implement it before I do so.
-//!
-//! I also want to ask what are the needs of other people for these features in
-//! 0.3.
-//!
-//! Part of the code for `rwx` and `(Owner | Group | Other)` permissions
-//! bitflags are already available at the project's repository.
+//! If you need it, create an issue.
 //!
 //! # Helping/Contributing:
 //! It's easy to contribute to this crate, here are some options:
-//!
 //! - Share it to a friend.
-//! - Help improve this README or other docs (even with little details).
+//! - Help improve this README or other docs (even little details).
 //! - Open an issue or PR in the repository.
-//! - Leave a star on GitHub.
-//! - Use it!!!
+//! - Use it and give feedback.
+//! - Suggest how to improve.
+
+#![warn(missing_docs)]
 
 pub mod functions;
 pub use functions::*;
