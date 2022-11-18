@@ -1,6 +1,5 @@
 # permissions
 
-## Permissions crate
 [![Crates.io](https://img.shields.io/crates/v/permissions.svg)](https://crates.io/crates/permissions)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/marcospb19/permissions/blob/main/LICENSE)
 [![Docs.rs](https://docs.rs/permissions/badge.svg)](https://docs.rs/permissions)
@@ -13,8 +12,6 @@ See [`functions`](https://docs.rs/permissions/latest/permissions/functions/index
 - [`is_writable`](https://docs.rs/permissions/latest/permissions/functions/fn.is_writable.html)
 - [`is_removable`](https://docs.rs/permissions/latest/permissions/functions/fn.is_removable.html)
 - [`is_creatable`](https://docs.rs/permissions/latest/permissions/functions/fn.is_creatable.html)
-
-See [`functions`].
 
 ## `Windows` support
 This library now supports `Windows`, however, it hasn't been fully tested.
@@ -44,9 +41,7 @@ I plan on adding a `rwx` permission interface, but I never needed it.
 If you need it, create an issue.
 
 ## Helping/Contributing:
-It's easy to contribute to this crate, here are some options:
-- Share it to a friend.
-- Help improve this README or other docs (even little details).
-- Open an issue or PR in the repository.
 - Use it and give feedback.
 - Suggest how to improve.
+- Open an issue or PR in the repository.
+- Help improve this README or other docs (even little details).

@@ -1,4 +1,4 @@
-//! Check for permissions at a path using [`access_syscall`].
+//! Permission checks at some path using [`access_syscall`].
 //!
 //! Having permission of reading, writing, executing or deleting a file does not
 //! guarantee success in doing so, it is unlikely but IO can fail.
