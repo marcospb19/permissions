@@ -8,12 +8,10 @@
 //!
 //! [`TOCTOU race conditions`]: https://en.wikipedia.org/wiki/Time-of-check_to_time-of-use
 
-use std::ffi::CString;
-use std::{io, os::raw::c_int, path::Path};
+use std::{ffi::CString, io, os::raw::c_int, path::Path};
 
 #[cfg(unix)]
 pub mod consts {
-    #[allow(unused)]
     pub const F_OK: libc::c_int = libc::F_OK;
     pub const R_OK: libc::c_int = libc::R_OK;
     pub const W_OK: libc::c_int = libc::W_OK;
@@ -22,7 +20,6 @@ pub mod consts {
 
 #[cfg(windows)]
 pub mod consts {
-    #[allow(unused)]
     pub const F_OK: libc::c_int = 00;
     pub const R_OK: libc::c_int = 04;
     pub const W_OK: libc::c_int = 02;
@@ -47,26 +44,61 @@ pub mod consts {
 /// use std::io;
 ///
 /// fn main() -> io::Result<()> {
-///     println!("{:?}", is_removable("src/lib.rs")?);
-///     println!("{:?}", is_removable("/root")?);
-///     println!("{:?}", is_removable("/")?);
+///     println!("{}", is_removable("src/lib.rs")?);
+///     println!("{}", is_removable("/root")?);
+///     println!("{}", is_removable("/")?);
 ///
 ///     // May return `Err(kind: PermissionDenied)`
-///     // println!("{:?}", is_removable("/root/any")?);
+///     // println!("{}", is_removable("/root/any")?);
 ///
 ///     Ok(())
 /// }
 /// ```
+///
 /// [`Path::canonicalize`]: std::path::Path::canonicalize
 pub fn is_removable(path: impl AsRef<Path>) -> io::Result<bool> {
     let path = path.as_ref().canonicalize()?;
     let parent = match path.parent() {
-        // Cannot delete '/' (root)
+        // Cannot delete '/' (root directory)
         None => return Ok(false),
         Some(parent) => parent,
     };
-
     access_syscall(&parent, consts::W_OK)
+}
+
+/// Check if current process has permission to create file.
+///
+/// That is, if the current process has permission of `write` to the parent directory, similar to
+/// [`is_removable`], but does not run [`canonicalize.
+///
+/// Returns `false` if there's no parent directory (because you can't create the system's root).
+///
+/// # Errors
+/// Same as [`access_syscall`].
+///
+/// # Examples
+/// ```
+/// use permissions::is_creatable;
+/// use std::io;
+///
+/// fn main() -> io::Result<()> {
+///     println!("{}", is_creatable("src/lib.rs")?);
+///     println!("{}", is_creatable("/root")?);
+///     println!("{}", is_creatable("/")?);
+///
+///     // May return `Err(kind: PermissionDenied)`
+///     // println!("{}", is_creatable("/root/any")?);
+///
+///     Ok(())
+/// }
+/// ```
+pub fn is_creatable(path: impl AsRef<Path>) -> io::Result<bool> {
+    let parent = match path.as_ref().parent() {
+        // Cannot create '/' (root directory)
+        None => return Ok(false),
+        Some(parent) => parent,
+    };
+    access_syscall(&parent, libc::W_OK)
 }
 
 /// Check if current process has permission to read.
@@ -80,12 +112,12 @@ pub fn is_removable(path: impl AsRef<Path>) -> io::Result<bool> {
 /// use std::io;
 ///
 /// fn main() -> io::Result<()> {
-///     println!("{:?}", is_readable("src/lib.rs")?);
-///     println!("{:?}", is_readable("/root")?);
-///     println!("{:?}", is_readable("/")?);
+///     println!("{}", is_readable("src/lib.rs")?);
+///     println!("{}", is_readable("/root")?);
+///     println!("{}", is_readable("/")?);
 ///
 ///     // may return `Err(kind: PermissionDenied)`
-///     // println!("{:?}", is_readable("/root/any")?);
+///     // println!("{}", is_readable("/root/any")?);
 ///
 ///     Ok(())
 /// }
@@ -105,12 +137,12 @@ pub fn is_readable(path: impl AsRef<Path>) -> io::Result<bool> {
 /// use std::io;
 ///
 /// fn main() -> io::Result<()> {
-///     println!("{:?}", is_writable("src/lib.rs")?);
-///     println!("{:?}", is_writable("/root")?);
-///     println!("{:?}", is_writable("/")?);
+///     println!("{}", is_writable("src/lib.rs")?);
+///     println!("{}", is_writable("/root")?);
+///     println!("{}", is_writable("/")?);
 ///
 ///     // may return `Err(kind: PermissionDenied)`
-///     // println!("{:?}", is_writable("/root/any")?);
+///     // println!("{}", is_writable("/root/any")?);
 ///
 ///     Ok(())
 /// }
@@ -140,7 +172,7 @@ pub fn is_writable(path: impl AsRef<Path>) -> io::Result<bool> {
 ///     assert!(!is_executable("/root")?);
 ///
 ///     // may return `Err(kind: PermissionDenied)`
-///     // println!("{:?}", is_executable("/root/any")?);
+///     // println!("{}", is_executable("/root/any")?);
 ///
 ///     Ok(())
 /// }
