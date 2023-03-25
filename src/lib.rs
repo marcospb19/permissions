@@ -25,6 +25,7 @@
 //!    assert!(is_readable("src/")?);
 //!    assert!(is_writable("src/")?);
 //!    assert!(is_writable("src/lib.rs")?);
+//!    #[cfg(unix)]
 //!    assert!(is_executable("/usr/bin/cat")?);
 //!    assert!(is_removable("src/lib.rs")?);
 //!    assert!(is_creatable("src/file.rs")?);
