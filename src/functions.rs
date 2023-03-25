@@ -54,8 +54,6 @@ pub mod consts {
 ///
 /// fn main() -> io::Result<()> {
 ///     println!("{}", is_removable("src/lib.rs")?);
-///     #[cfg(unix)]
-///     println!("{}", is_removable("/root")?);
 ///     println!("{}", is_removable("/")?);
 ///
 ///     // May return `Err(kind: PermissionDenied)`
@@ -123,8 +121,6 @@ pub fn is_creatable(path: impl AsRef<Path>) -> io::Result<bool> {
 ///
 /// fn main() -> io::Result<()> {
 ///     println!("{}", is_readable("src/lib.rs")?);
-///     #[cfg(unix)]
-///     println!("{}", is_readable("/root")?);
 ///     println!("{}", is_readable("/")?);
 ///
 ///     // may return `Err(kind: PermissionDenied)`
@@ -149,8 +145,6 @@ pub fn is_readable(path: impl AsRef<Path>) -> io::Result<bool> {
 ///
 /// fn main() -> io::Result<()> {
 ///     println!("{}", is_writable("src/lib.rs")?);
-///     #[cfg(unix)]
-///     println!("{}", is_writable("/root")?);
 ///     println!("{}", is_writable("/")?);
 ///
 ///     // may return `Err(kind: PermissionDenied)`
@@ -226,15 +220,18 @@ pub fn is_executable(path: impl AsRef<Path>) -> io::Result<bool> {
 /// fn main() -> std::io::Result<()> {
 ///     assert!(access_syscall("src/lib.rs", R_OK | W_OK)?);
 ///     #[cfg(unix)]
-///     assert!(access_syscall("/", R_OK | X_OK)?);
+///     {
+///         assert!(access_syscall("/", R_OK | X_OK)?);
+///         assert!(!access_syscall("src/lib.rs", X_OK)?);
+///         assert!(!access_syscall("/", W_OK)?);
+///     }
+/// 
 ///     #[cfg(windows)]
-///     assert!(access_syscall("/", R_OK)?);
+///     {
+///         assert!(access_syscall("/", R_OK)?);
+///     }
 ///     assert!(access_syscall(".", F_OK)?);
 ///
-///     #[cfg(unix)]
-///     assert!(!access_syscall("src/lib.rs", X_OK)?);
-///     #[cfg(unix)]
-///     assert!(!access_syscall("/root", W_OK)?);
 ///
 ///     Ok(())
 /// }
@@ -260,6 +257,22 @@ pub fn access_syscall(path: impl AsRef<Path>, mode_mask: c_int) -> io::Result<bo
     fn access(path: &Path, mode_mask: libc::c_int) -> i32 {
         extern "C" {
             fn _access_s(path: *const libc::c_char, mode: c_int) -> libc::c_int;
+        }
+
+        // if _access_s get's called with random bytes, it crashes with a stackoverflow
+        // so we just check the permissions here
+        let mut check_mask = mode_mask;
+        let check_read = check_mask & consts::R_OK != 0;
+        if check_read {
+            check_mask = check_mask ^ consts::R_OK;
+        }
+        let check_write = check_mask & consts::W_OK != 0;
+        if check_write {
+            check_mask = check_mask ^ consts::W_OK;
+        }
+
+        if check_mask != 0 {
+            return libc::EINVAL;
         }
 
         let cstr =
@@ -325,7 +338,7 @@ mod tests {
         assert!(access_syscall("src/lib.rs", F_OK).unwrap());
 
         assert!(access_syscall("path_doesnt_exist/", F_OK).is_err()); // invalid path
-        // assert!(access_syscall("src/", 0b11111).is_err()); // invalid number
+        assert!(access_syscall("src/", 0b11111).is_err()); // invalid number
 
         assert!(!is_removable("/").unwrap());
     }
