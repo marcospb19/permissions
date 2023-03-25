@@ -98,7 +98,7 @@ pub fn is_creatable(path: impl AsRef<Path>) -> io::Result<bool> {
         None => return Ok(false),
         Some(parent) => parent,
     };
-    access_syscall(&parent, libc::W_OK)
+    access_syscall(&parent, consts::W_OK)
 }
 
 /// Check if current process has permission to read.
