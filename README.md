@@ -1,3 +1,7 @@
+# NOTE
+
+If you want Windows support, check [faccess] instead.
+
 # permissions
 
 [![Crates.io](https://img.shields.io/crates/v/permissions.svg)](https://crates.io/crates/permissions)
@@ -12,11 +16,7 @@ See [`functions`](https://docs.rs/permissions/latest/permissions/functions/index
 - [`is_writable`](https://docs.rs/permissions/latest/permissions/functions/fn.is_writable.html)
 - [`is_removable`](https://docs.rs/permissions/latest/permissions/functions/fn.is_removable.html)
 - [`is_creatable`](https://docs.rs/permissions/latest/permissions/functions/fn.is_creatable.html)
-
-## `Windows` support
-This library now supports `Windows`, however, it hasn't been fully tested.
-
-Please, open an issue if you find any problems.
+- [`access_syscall`](https://docs.rs/permissions/latest/permissions/functions/fn.access_syscall.html) supports a custom bitfield of permissions.
 
 ## Examples:
 ```rust
@@ -35,13 +35,7 @@ fn main() -> std::io::Result<()> {
 }
 ```
 
-## Future
-I plan on adding a `rwx` permission interface, but I never needed it.
+# Alternatives
+- [faccess] - it provides Windows support and a trait-based API.
 
-If you need it, create an issue.
-
-## Helping/Contributing:
-- Use it and give feedback.
-- Suggest how to improve.
-- Open an issue or PR in the repository.
-- Help improve this README or other docs (even little details).
+[faccess]: https://github.com/Freaky/faccess

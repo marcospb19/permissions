@@ -1,3 +1,9 @@
+//! # NOTE
+//!
+//! If you want Windows support, check [faccess] instead.
+//!
+//! ---
+//!
 //! [![Crates.io](https://img.shields.io/crates/v/permissions.svg)](https://crates.io/crates/permissions)
 //! [![License](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/marcospb19/permissions/blob/main/LICENSE)
 //! [![Docs.rs](https://docs.rs/permissions/badge.svg)](https://docs.rs/permissions)
@@ -10,11 +16,7 @@
 //! - [`is_writable`](https://docs.rs/permissions/latest/permissions/functions/fn.is_writable.html)
 //! - [`is_removable`](https://docs.rs/permissions/latest/permissions/functions/fn.is_removable.html)
 //! - [`is_creatable`](https://docs.rs/permissions/latest/permissions/functions/fn.is_creatable.html)
-//!
-//! # `Windows` support
-//! This library now supports `Windows`, however, it hasn't been fully tested.
-//!
-//! Please, open an issue if you find any problems.
+//! - [`access_syscall`](https://docs.rs/permissions/latest/permissions/functions/fn.access_syscall.html) supports a custom bitfield of permissions.
 //!
 //! # Examples:
 //! ```
@@ -33,16 +35,10 @@
 //! }
 //! ```
 //!
-//! # Future
-//! I plan on adding a `rwx` permission interface, but I never needed it.
+//! # Alternatives
+//! - [faccess] - it provides Windows support and a trait-based API.
 //!
-//! If you need it, create an issue.
-//!
-//! # Helping/Contributing:
-//! - Use it and give feedback.
-//! - Suggest how to improve.
-//! - Open an issue or PR in the repository.
-//! - Help improve this README or other docs (even little details).
+//! [faccess]: https://github.com/Freaky/faccess
 
 #![warn(missing_docs)]
 
