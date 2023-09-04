@@ -16,7 +16,6 @@ use std::{
 };
 
 /// Bitflags definitions used in the `access_syscall` bitfield.
-#[cfg(unix)]
 pub mod consts {
     /// File exists.
     pub const F_OK: libc::c_int = libc::F_OK;
@@ -65,7 +64,7 @@ pub fn is_removable(path: impl AsRef<Path>) -> io::Result<bool> {
         None => return Ok(false),
         Some(parent) => parent,
     };
-    access_syscall(&parent, consts::W_OK)
+    access_syscall(parent, consts::W_OK)
 }
 
 /// Check if current process has permission to create file.
@@ -124,7 +123,7 @@ pub fn is_creatable(path: impl AsRef<Path>) -> io::Result<bool> {
 /// }
 /// ```
 pub fn is_readable(path: impl AsRef<Path>) -> io::Result<bool> {
-    access_syscall(&path.as_ref(), consts::R_OK)
+    access_syscall(path.as_ref(), consts::R_OK)
 }
 
 /// Check if current process has permission to write.
@@ -149,7 +148,7 @@ pub fn is_readable(path: impl AsRef<Path>) -> io::Result<bool> {
 /// }
 /// ```
 pub fn is_writable(path: impl AsRef<Path>) -> io::Result<bool> {
-    access_syscall(&path.as_ref(), consts::W_OK)
+    access_syscall(path.as_ref(), consts::W_OK)
 }
 
 /// Check if current process has permission to execute.
@@ -178,9 +177,8 @@ pub fn is_writable(path: impl AsRef<Path>) -> io::Result<bool> {
 ///     Ok(())
 /// }
 /// ```
-#[cfg(unix)]
 pub fn is_executable(path: impl AsRef<Path>) -> io::Result<bool> {
-    access_syscall(&path.as_ref(), consts::X_OK)
+    access_syscall(path.as_ref(), consts::X_OK)
 }
 
 /// Safe wrapper to the `libc::access` syscall.
