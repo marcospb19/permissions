@@ -8,7 +8,7 @@
 //! [![License](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/marcospb19/permissions/blob/main/LICENSE)
 //! [![Docs.rs](https://docs.rs/permissions/badge.svg)](https://docs.rs/permissions)
 //!
-//! Useful filesystem queries for file permissions:
+//! Useful filesystem queries for Unix file permissions:
 //!
 //! See [`functions`].
 //! - [`is_executable`]

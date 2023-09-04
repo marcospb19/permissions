@@ -8,7 +8,7 @@ If you want Windows support, check [faccess] instead.
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/marcospb19/permissions/blob/main/LICENSE)
 [![Docs.rs](https://docs.rs/permissions/badge.svg)](https://docs.rs/permissions)
 
-Useful filesystem queries for file permissions:
+Useful filesystem queries for Unix  file permissions:
 
 See [`functions`](https://docs.rs/permissions/latest/permissions/functions/index.html).
 - [`is_executable`](https://docs.rs/permissions/latest/permissions/functions/fn.is_executable.html)
