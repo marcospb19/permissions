@@ -10,13 +10,13 @@
 //!
 //! Useful filesystem queries for file permissions:
 //!
-//! See [`functions`](https://docs.rs/permissions/latest/permissions/functions/index.html).
-//! - [`is_executable`](https://docs.rs/permissions/latest/permissions/functions/fn.is_executable.html)
-//! - [`is_readable`](https://docs.rs/permissions/latest/permissions/functions/fn.is_readable.html)
-//! - [`is_writable`](https://docs.rs/permissions/latest/permissions/functions/fn.is_writable.html)
-//! - [`is_removable`](https://docs.rs/permissions/latest/permissions/functions/fn.is_removable.html)
-//! - [`is_creatable`](https://docs.rs/permissions/latest/permissions/functions/fn.is_creatable.html)
-//! - [`access_syscall`](https://docs.rs/permissions/latest/permissions/functions/fn.access_syscall.html) supports a custom bitfield of permissions.
+//! See [`functions`](crate::functions).
+//! - [`is_executable`](crate::functions::is_executable)
+//! - [`is_readable`](crate::functions::is_readable)
+//! - [`is_writable`](crate::functions::is_writable)
+//! - [`is_removable`](crate::functions::is_removable)
+//! - [`is_creatable`](crate::functions::is_creatable)
+//! - [`access_syscall`](crate::functions::access_syscall) supports a custom bitfield of permissions.
 //!
 //! # Examples:
 //! ```

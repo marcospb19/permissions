@@ -15,6 +15,7 @@ use std::{
     path::Path,
 };
 
+/// Bitflags definitions used in the `access_syscall` bitfield.
 #[cfg(unix)]
 pub mod consts {
     pub const F_OK: libc::c_int = libc::F_OK;
@@ -28,8 +29,9 @@ pub mod consts {
 /// That is, if the current process has permission of `write` to the parent
 /// directory.
 ///
-/// Returns `false` if there's no parent directory (because can't delete the
-/// system's root).
+/// Returns `false` if there's no parent directory (because can't delete the root directory).
+///
+/// This is the same as calling [`is_creatable`].
 ///
 /// # Errors
 ///
@@ -52,8 +54,6 @@ pub mod consts {
 ///     Ok(())
 /// }
 /// ```
-///
-/// [`Path::canonicalize`]: std::path::Path::canonicalize
 pub fn is_removable(path: impl AsRef<Path>) -> io::Result<bool> {
     let path = path.as_ref().canonicalize()?;
     let parent = match path.parent() {
@@ -66,10 +66,12 @@ pub fn is_removable(path: impl AsRef<Path>) -> io::Result<bool> {
 
 /// Check if current process has permission to create file.
 ///
-/// That is, if the current process has permission of `write` to the parent directory, similar to
-/// [`is_removable`], but does not run [`canonicalize.
+/// That is, if the current process has permission of `write` to the parent
+/// directory.
 ///
-/// Returns `false` if there's no parent directory (because you can't create the system's root).
+/// Returns `false` if there's no parent directory (because you can't create the root directory).
+///
+/// This is the same as calling [`is_removable`].
 ///
 /// # Errors
 /// Same as [`access_syscall`].
