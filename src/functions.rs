@@ -74,7 +74,9 @@ pub fn is_removable(path: impl AsRef<Path>) -> io::Result<bool> {
 /// This is the same as calling [`is_removable`].
 ///
 /// # Errors
-/// Same as [`access_syscall`].
+///
+/// - If [`Path::canonicalize`] fails.
+/// - Same as [`access_syscall`].
 ///
 /// # Examples
 /// ```
@@ -93,12 +95,7 @@ pub fn is_removable(path: impl AsRef<Path>) -> io::Result<bool> {
 /// }
 /// ```
 pub fn is_creatable(path: impl AsRef<Path>) -> io::Result<bool> {
-    let parent = match path.as_ref().parent() {
-        // Cannot create '/' (root directory)
-        None => return Ok(false),
-        Some(parent) => parent,
-    };
-    access_syscall(&parent, libc::W_OK)
+    is_removable(path.as_ref())
 }
 
 /// Check if current process has permission to read.
