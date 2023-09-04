@@ -18,9 +18,13 @@ use std::{
 /// Bitflags definitions used in the `access_syscall` bitfield.
 #[cfg(unix)]
 pub mod consts {
+    /// File exists.
     pub const F_OK: libc::c_int = libc::F_OK;
+    /// Read permission.
     pub const R_OK: libc::c_int = libc::R_OK;
+    /// Write permission.
     pub const W_OK: libc::c_int = libc::W_OK;
+    /// Execute permission.
     pub const X_OK: libc::c_int = libc::X_OK;
 }
 
