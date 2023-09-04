@@ -8,7 +8,12 @@
 //!
 //! [`TOCTOU race conditions`]: https://en.wikipedia.org/wiki/Time-of-check_to_time-of-use
 
-use std::{ffi::CString, io, os::raw::c_int, path::Path};
+use std::{
+    ffi::CString,
+    io,
+    os::{raw::c_int, unix::prelude::OsStrExt},
+    path::Path,
+};
 
 #[cfg(unix)]
 pub mod consts {
@@ -16,13 +21,6 @@ pub mod consts {
     pub const R_OK: libc::c_int = libc::R_OK;
     pub const W_OK: libc::c_int = libc::W_OK;
     pub const X_OK: libc::c_int = libc::X_OK;
-}
-
-#[cfg(windows)]
-pub mod consts {
-    pub const F_OK: libc::c_int = 00;
-    pub const R_OK: libc::c_int = 04;
-    pub const W_OK: libc::c_int = 02;
 }
 
 /// Check if current process has permission to remove file.
@@ -200,8 +198,7 @@ pub fn is_executable(path: impl AsRef<Path>) -> io::Result<bool> {
 /// To check for each given `rwx` permission, or:
 /// - [`consts::F_OK`] _(File exists)_
 ///
-/// Otherwise, the function fails with [`Err(kind:
-/// InvalidInput)`](std::io::ErrorKind::InvalidInput)
+/// Otherwise, the function fails with [`Err(kind::InvalidInput)`](std::io::ErrorKind::InvalidInput)
 ///
 /// # Examples:
 ///
@@ -229,27 +226,11 @@ pub fn is_executable(path: impl AsRef<Path>) -> io::Result<bool> {
 pub fn access_syscall(path: impl AsRef<Path>, mode_mask: c_int) -> io::Result<bool> {
     let path = path.as_ref();
 
-    #[cfg(unix)]
-    fn access(path: &Path, mode_mask: c_int) -> i32 {
-        use std::os::unix::prelude::OsStrExt;
+    let cstr = CString::new(path.as_os_str().as_bytes()).expect("Path had interior nul byte");
 
-        let cstr = CString::new(path.as_os_str().as_bytes()).expect("Path had interior nul byte");
-        unsafe { libc::access(cstr.as_ptr(), mode_mask) }
-    }
-
-    #[cfg(windows)]
-    fn access(path: &Path, mode_mask: libc::c_int) -> i32 {
-        extern "C" {
-            fn _access_s(path: *const libc::c_char, mode: c_int) -> libc::c_int;
-        }
-
-        let cstr =
-            CString::new(path.to_string_lossy().as_bytes()).expect("Path had interior nul byte");
-
-        unsafe { _access_s(cstr.as_ptr(), mode_mask) }
-    }
-
-    let access_return_code = access(path, mode_mask);
+    // Safety:
+    //   Pointee is a valid null-terminated string.
+    let access_return_code = unsafe { libc::access(cstr.as_ptr(), mode_mask) };
 
     match access_return_code {
         0 => Ok(true),
